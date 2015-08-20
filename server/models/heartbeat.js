@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const HeartbeatSchema = new mongoose.Schema({
   // The date and time when this heartbeat was sent.
@@ -8,4 +8,4 @@ const HeartbeatSchema = new mongoose.Schema({
 });
 
 const Heartbeat = mongoose.model('Heartbeat', HeartbeatSchema);
-module.exports = Heartbeat;
+export default Heartbeat;

@@ -1,5 +1,5 @@
-const express = require('express');
-const routeUtils = require('./route_utils.js');
+import express from 'express';
+import routeUtils from './route_utils';
 
 // This causes a lint error because only constructors are allowed to have positive letters.
 /*eslint-disable*/
@@ -18,4 +18,4 @@ router.post('/heartbeats/', function handleHeartbeat(req, res) {
   res.send('Your latitude is ' + params[LATITUDE] + ' and your longitude is ' + params[LONGITUDE]);
 });
 
-module.exports = router;
+export default router;

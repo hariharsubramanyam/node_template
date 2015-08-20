@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const HeartbeatStreamSchema = new mongoose.Schema({
   // The ID of the user who is sending out heartbeats.
@@ -10,4 +10,4 @@ const HeartbeatStreamSchema = new mongoose.Schema({
 });
 
 const HeartbeatStream = mongoose.model('HeartbeatStream', HeartbeatStreamSchema);
-module.exports = HeartbeatStream;
+export default HeartbeatStream;

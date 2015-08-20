@@ -1,11 +1,11 @@
-const express = require('express');
-const path = require('path');
-const logger = require('morgan');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
+import express from 'express';
+import path from 'path';
+import logger from 'morgan';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 
-const routes = require('./routes/index');
-const api = require('./routes/api.js');
+import routes from './routes/index';
+import api from './routes/api.js';
 
 const app = express();
 
@@ -54,4 +54,4 @@ app.use(function handleProd500(err, req, res) {
   });
 });
 
-module.exports = app;
+export default app;

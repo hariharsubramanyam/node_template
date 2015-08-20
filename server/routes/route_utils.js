@@ -1,18 +1,18 @@
-const HttpStatus = require('http-status-codes');
+import HttpStatus from 'http-status-codes';
 
 function checkParams(names, req, res) {
   const params = {};
   let failed = false;
-  for (let i = 0; i < names.length; i++) {
-    if (req.body[names[i]] === undefined) {
+  for (const name of names) {
+    if (req.body[name] === undefined) {
       failed = true;
       res.status(HttpStatus.BAD_REQUEST)
         .json({
           'success': 'false',
-          'error': 'You need to provide the ' + names[i] + ' parameter.',
+          'error': 'You need to provide the ' + name + ' parameter.',
         });
     } else {
-      params[names[i]] = req.body[names[i]];
+      params[name] = req.body[name];
     }
   }
   if (failed) {
@@ -21,6 +21,6 @@ function checkParams(names, req, res) {
   return params;
 }
 
-module.exports = {
+export default {
   'checkParams': checkParams,
 };

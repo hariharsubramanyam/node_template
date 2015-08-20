@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const regexes = require('./model_regexes.js');
+import mongoose from 'mongoose';
+import regexes from 'model_regexes';
 
 const UserSchema = new mongoose.Schema({
   // Name of this user. Names must consist of letters, spaces, ', and -.
@@ -16,4 +16,4 @@ const UserSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', UserSchema);
-module.exports = User;
+export default User;

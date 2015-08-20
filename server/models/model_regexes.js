@@ -10,4 +10,4 @@ regexes.nameRegex = /^[a-zA-Z'-\s]+$/;
 
 regexes.phoneRegex = /\d{10, 15}/;
 
-module.exports = regexes;
+export default regexes;
