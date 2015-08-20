@@ -1,9 +1,15 @@
 const gulp = require('gulp');
 const eslint = require('gulp-eslint');
-const supervisor = require('gulp-supervisor');
+const exec = require('child_process').exec;
 const babelServer = require('gulp-babel');
 const sourcemaps = require('gulp-sourcemaps');
 const del = require('del');
+const watch = require('gulp-watch');
+const batch = require('gulp-batch');
+
+const myProcess = {
+  'child': null,
+};
 
 gulp.task('cleanServer', function cleanServerTask(cb) {
   del([
@@ -32,11 +38,23 @@ gulp.task('handlebarsServer', ['cleanServer'], function handlebarsServerTask() {
                    .pipe(gulp.dest('serverDist'));
 });
 
-gulp.task('serve', ['cleanServer', 'lintServer', 'handlebarsServer', 'babelServer'], function serveTask() {
-  supervisor('./bin/www', {
-    watch: ['./bin', './'],
-    exec: 'node',
-    extensions: ['js'],
-    noRestartOn: 'exit',
-  });
+gulp.task('watchServer', function watchTask() {
+  watch(['./server/**/*.js'], batch(
+  function onChange(events, done) {
+    if (myProcess.child !== null) {
+      myProcess.child.kill();
+    }
+    gulp.start('serve', done);
+  }));
 });
+
+gulp.task('serve', ['buildServer'], function serveTask(cb) {
+  if (myProcess.child !== null) {
+    myProcess.child.kill();
+  }
+  myProcess.child = exec('DEBUG=urban_safe:* npm start', function onStart() {});
+  cb();
+});
+
+gulp.task('buildServer', ['cleanServer', 'lintServer', 'handlebarsServer', 'babelServer']);
+gulp.task('default', ['buildServer', 'serve', 'watchServer']);
