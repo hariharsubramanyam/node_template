@@ -1,3 +1,5 @@
+// Secret values that should not be put on the git repo.
+
 import 'source-map-support/register';
 export const SALT = 10;
 export const MONGO_URL = 'mongodb://localhost/urban_safe';

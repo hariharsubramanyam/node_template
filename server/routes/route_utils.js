@@ -1,6 +1,10 @@
+// Helper functions for interacting with the requests and responses.
+
 import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
 
+// Check that the values in 'names' (an array of strings) appear in the request body. If they all
+// appear, extract them and return them in an object with key=param name and value=param value.
 export function checkParams(names, req, res, callback) {
   const params = {};
   let missingArg = null;
@@ -19,6 +23,7 @@ export function checkParams(names, req, res, callback) {
   }
 }
 
+// Send a JSON response indicating a successful operation.
 export function sendSuccessResponse(res, message, content) {
   res.status(HttpStatus.OK).json({
     'success': true,
@@ -27,6 +32,7 @@ export function sendSuccessResponse(res, message, content) {
   });
 }
 
+// Send a JSON response indicating a failed operation.
 export function sendFailureResponse(res, code, message) {
   res.status(code).json({
     'success': false,

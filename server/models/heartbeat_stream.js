@@ -1,3 +1,5 @@
+// A heartbeat stream is a set of messages sent from a sender to a number of recipients.
+
 import 'source-map-support/register';
 import mongoose from 'mongoose';
 

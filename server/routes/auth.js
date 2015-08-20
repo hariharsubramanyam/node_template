@@ -1,3 +1,5 @@
+// API endpoints for authenticating the user.
+
 import 'source-map-support/register';
 import express from 'express';
 import HttpStatus from 'http-status-codes';
@@ -19,6 +21,8 @@ const checkParamsAsync = Promise.promisify(checkParams);
 const router = express.Router();
 /*eslint-enable*/
 
+// Generate a new token for the user, provided that they've given a 'username' and 'password' in the
+// request body.
 router.put('/token',
     passport.authenticate('local', {'session': false}),
     function tokenCallback(req, res) {
@@ -29,6 +33,10 @@ router.put('/token',
       });
     });
 
+// Validate the token for the given user. The token must be a HTTP Bearer. That is, if the token is
+// <token>, we expect the value 'Bearer <token>' to be set for the HTTP Header 'Authorization'.
+//
+// If successful, this will the username of the user.
 router.get('/token',
     passport.authenticate('bearer', {'session': false}),
     function validateToken(req, res) {
@@ -37,17 +45,25 @@ router.get('/token',
       });
     });
 
+// Register a new user. The 'username', 'phone', 'email', and 'password' must appear in the request
+// body.
+//
+// If successful, the result will contain the 'token' and the 'username'.
 router.post('/token', function registerUser(req, res) {
+  // Ensure that the parameters exist and search for the user.
   checkParamsAsync(['username', 'phone', 'email', 'password'], req, res).then(function onValid() {
     return User.findOneAsync({'name': req.body.username});
   }).then(function foundUser(user) {
+    // Ensure the user exists and generate a salt.
     if (user) {
       throw new Error('Username already exists');
     }
     return bcrypt.genSaltAsync(SALT);
   }).then(function gotSalt(salt) {
+    // Hash the password.
     return bcrypt.hashAsync(req.body.password, salt);
   }).then(function onPasswordHash(hashPassword) {
+    // Create a user and save.
     const user = new User();
     user.hashPassword = hashPassword;
     user.name = req.body.username;
@@ -57,6 +73,7 @@ router.post('/token', function registerUser(req, res) {
     Promise.promisifyAll(user);
     return user.saveAsync();
   }).then(function onUserSave(user) {
+    // Create a token.
     const accessToken = createToken(user);
     sendSuccessResponse(res, 'Successfully registered', {
       'token': accessToken,

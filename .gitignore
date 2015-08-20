@@ -31,3 +31,6 @@ npm-debug.log
 
 # Server compiled files
 serverDist
+
+# Secrets must be hidden.
+secrets.js

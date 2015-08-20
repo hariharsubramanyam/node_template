@@ -1,3 +1,5 @@
+// Users are the people who use this app.
+
 import 'source-map-support/register';
 import mongoose from 'mongoose';
 import {emailRegex, phoneRegex, nameRegex} from './model_regexes';

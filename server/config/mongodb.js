@@ -1,3 +1,5 @@
+// Connects to the production mongo database.
+
 import 'source-map-support/register';
 import mongoose from 'mongoose';
 import {MONGO_URL} from './secrets';
