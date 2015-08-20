@@ -19,7 +19,7 @@ const checkParamsAsync = Promise.promisify(checkParams);
 const router = express.Router();
 /*eslint-enable*/
 
-router.post('/token',
+router.put('/token',
     passport.authenticate('local', {'session': false}),
     function tokenCallback(req, res) {
       const token = createToken(req.user);
@@ -29,7 +29,7 @@ router.post('/token',
       });
     });
 
-router.get('/validate',
+router.get('/token',
     passport.authenticate('bearer', {'session': false}),
     function validateToken(req, res) {
       sendSuccessResponse(res, 'Valid token', {
@@ -37,7 +37,7 @@ router.get('/validate',
       });
     });
 
-router.post('/register', function registerUser(req, res) {
+router.post('/token', function registerUser(req, res) {
   checkParamsAsync(['username', 'phone', 'email', 'password'], req, res).then(function onValid() {
     return User.findOneAsync({'name': req.body.username});
   }).then(function foundUser(user) {
