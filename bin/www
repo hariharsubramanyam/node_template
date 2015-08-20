@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+var app = require('../serverDist/app');
 var debug = require('debug')('urban_safe:server');
 var http = require('http');
 
