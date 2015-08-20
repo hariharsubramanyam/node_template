@@ -1,19 +1,18 @@
 const mongoose = require('mongoose');
-
-// Comes from: http://emailregex.com/.
-const emailRegex = new RegExp('^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_]'
-      + '[-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net'
-      + '|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]'
-      + '{1,5})?$', 'i');
+const regexes = require('./model_regexes.js');
 
 const UserSchema = new mongoose.Schema({
-  // Names must consist of letters and either the ' or - characters.
-  'name': {'type': String, 'match': /^[a-zA-Z'-]+$/},
-  // Phone numbers consist of 10 to 15 digits.
-  'phone': {'type': String, 'match': /\d{10, 15}/},
-  'email': {'type': String, 'match': emailRegex},
-  'contacts': [ObjectId],
-  'heartbeat_streams': [ObjectId],
+  // Name of this user. Names must consist of letters, spaces, ', and -.
+  'name': {'type': String, 'match': regexes.nameRegex},
+  // Phone number for this user. Phone numbers consist of 10 to 15 digits.
+  'phone': {'type': String, 'match': regexes.phoneRegex},
+  // The email address for this user.
+  'email': {'type': String, 'match': regexes.emailRegex},
+  // The IDs of the users who have been marked as contacts for the given user.
+  'contacts': [mongoose.Schema.Types.ObjectId],
+  // The IDs of the heartbeat streams that this user is associated with,
+  // either as sender or recipient.
+  'heartbeat_streams': [mongoose.Schema.Types.ObjectId],
 });
 
 const User = mongoose.model('User', UserSchema);
