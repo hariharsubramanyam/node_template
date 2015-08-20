@@ -1,26 +1,35 @@
+import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
 
-function checkParams(names, req, res) {
+export function checkParams(names, req, res, callback) {
   const params = {};
-  let failed = false;
+  let missingArg = null;
   for (const name of names) {
     if (req.body[name] === undefined) {
-      failed = true;
-      res.status(HttpStatus.BAD_REQUEST)
-        .json({
-          'success': 'false',
-          'error': 'You need to provide the ' + name + ' parameter.',
-        });
+      missingArg = name;
+      break;
     } else {
       params[name] = req.body[name];
     }
   }
-  if (failed) {
-    return null;
+  if (missingArg !== null) {
+    callback('You are missing the ' + missingArg + ' param');
+  } else {
+    callback(null, params);
   }
-  return params;
 }
 
-export default {
-  'checkParams': checkParams,
-};
+export function sendSuccessResponse(res, message, content) {
+  res.status(HttpStatus.OK).json({
+    'success': true,
+    'message': message.toString(),
+    'content': content,
+  });
+}
+
+export function sendFailureResponse(res, code, message) {
+  res.status(code).json({
+    'success': false,
+    'message': message.toString(),
+  });
+}

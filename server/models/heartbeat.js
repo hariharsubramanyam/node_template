@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import mongoose from 'mongoose';
 
 const HeartbeatSchema = new mongoose.Schema({

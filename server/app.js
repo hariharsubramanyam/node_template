@@ -1,11 +1,16 @@
 import express from 'express';
+import 'source-map-support/register';
 import path from 'path';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 
 import routes from './routes/index';
-import api from './routes/api.js';
+import api from './routes/api';
+import auth from './routes/auth';
+import connectToMongo from './config/mongodb';
+
+connectToMongo();
 
 const app = express();
 
@@ -21,7 +26,8 @@ app.use(require('stylus').middleware(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use('/', routes);
-app.use('/api/v1/', api);
+app.use('/api/v1/api', api);
+app.use('/api/v1/auth', auth);
 
 // catch 404 and forward to error handler
 app.use(function handle404(req, res, next) {

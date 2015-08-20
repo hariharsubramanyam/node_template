@@ -2,6 +2,7 @@ const gulp = require('gulp');
 const eslint = require('gulp-eslint');
 const supervisor = require('gulp-supervisor');
 const babelServer = require('gulp-babel');
+const sourcemaps = require('gulp-sourcemaps');
 const del = require('del');
 
 gulp.task('cleanServer', function cleanServerTask(cb) {
@@ -20,7 +21,9 @@ gulp.task('lintServer', ['cleanServer'], function lintTask() {
 
 gulp.task('babelServer', ['cleanServer'], function babelServerTask() {
   return gulp.src(['./server/**/*.js', '!./node_modules/**'])
+                   .pipe(sourcemaps.init())
                    .pipe(babelServer())
+                   .pipe(sourcemaps.write('.', {'sourceRoot': './server'}))
                    .pipe(gulp.dest('serverDist'));
 });
 

@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import express from 'express';
 
 // This causes a lint error because only constructors are allowed to have positive letters.
