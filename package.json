@@ -35,6 +35,7 @@
     "gulp-batch": "^1.0.5",
     "gulp-concat": "^2.6.0",
     "gulp-eslint": "^1.0.0",
+    "gulp-nodemon": "^2.0.3",
     "gulp-sourcemaps": "^1.5.2",
     "gulp-supervisor": "^0.1.2",
     "gulp-watch": "^4.3.5",
