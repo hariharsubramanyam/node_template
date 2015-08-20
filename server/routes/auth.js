@@ -30,7 +30,7 @@ router.post('/token',
     });
 
 router.get('/validate',
-    passport.authenticate('local', {'session': false}),
+    passport.authenticate('bearer', {'session': false}),
     function validateToken(req, res) {
       sendSuccessResponse(res, 'Valid token', {
         'username': req.user.username,

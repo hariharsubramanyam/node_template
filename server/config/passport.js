@@ -8,7 +8,6 @@ import User from '../models/user';
 import Promise from 'bluebird';
 
 Promise.promisifyAll(User);
-const verifyTokenAsync = Promise.promisifyAll(verifyToken);
 Promise.promisifyAll(bcrypt);
 
 passport.use(new passportLocal.Strategy({
@@ -31,9 +30,7 @@ passport.use(new passportLocal.Strategy({
 }));
 
 passport.use(new passportHttpBearer.Strategy(function onBearer(token, done) {
-  verifyTokenAsync(token).then(function onVerified(user) {
-    done(null, user);
-  }).catch(done);
+  verifyToken(token, done);
 }));
 
 export default passport;

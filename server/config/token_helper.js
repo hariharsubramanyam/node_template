@@ -18,16 +18,20 @@ export function createToken(user) {
 }
 
 export function verifyToken(token, callback) {
-  const decodedToken = jwt.decode(token, TOKEN_SECRET);
-  User.findOne({'_id': decodedToken.userId}).then(function foundUser(user) {
-    if (!user) {
-      callback('The user does not exist.');
-    } else if (decodedToken.expires <= Date.now) {
-      callback('The token has expired.');
-    } else {
-      callback(null, user);
-    }
-  }).catch(function onError(err) {
-    callback(err);
-  });
+  try {
+    const decodedToken = jwt.decode(token, TOKEN_SECRET);
+    User.findOneAsync({'_id': decodedToken.userId}).then(function foundUser(user) {
+      if (!user) {
+        callback('The user does not exist.');
+      } else if (decodedToken.expires <= Date.now) {
+        callback('The token has expired.');
+      } else {
+        callback(null, user);
+      }
+    }).catch(function onError(err) {
+      callback(err);
+    });
+  } catch (ex) {
+    callback('Could not decode token');
+  }
 }
