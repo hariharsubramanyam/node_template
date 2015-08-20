@@ -10,7 +10,7 @@ router.post('/heartbeats/', function handleHeartbeat(req, res) {
   // Extract the desired parameters.
   const LATITUDE = 'latitude';
   const LONGITUDE = 'longitude';
-  const params = routeUtils.check_params([LATITUDE, LONGITUDE], req, res);
+  const params = routeUtils.checkParams([LATITUDE, LONGITUDE], req, res);
   if (params === null) {
     return;
   }
