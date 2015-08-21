@@ -29,13 +29,11 @@ router.get('/connections',
           return Promise.reject(new Error('Could not find user'));
         }
         // Extract the connection info for each connection request.
-        const connections = user.connection_requests.map(function pick(cr) {
-          return {
-            'sender': cr.sender,
-            'recipient': cr.recipient,
-            'accepted': cr.accepted,
-          };
-        });
+        const connections = user.connectionRequests.map(cr => ({
+          'sender': cr.sender,
+          'recipient': cr.recipient,
+          'accepted': cr.accepted,
+        }));
         sendSuccessResponse(res, 'Connection requests', connections);
       }).catch(function onError(err) {
         sendFailureResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, err);
@@ -74,6 +72,7 @@ router.post('/connections',
 
         Promise.promisifyAll(connectionRequest);
         return connectionRequest.saveAsync();
+        // TODO(hsubrama): Make sure you also add the connection request id to both users.
       }).then(function onSave(connectionRequests) {
         // Handle a failed save.
         if (connectionRequests.length === 0) {

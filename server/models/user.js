@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
   // either as sender or recipient.
   'heartbeatStreams': [mongoose.Schema.Types.ObjectId],
   // The IDs of the connection requests that this user is involved in.
-  'connection_requests': [mongoose.Schema.Types.ObjectId],
+  'connectionRequests': [mongoose.Schema.Types.ObjectId],
 });
 
 const User = mongoose.model('User', UserSchema);

@@ -79,9 +79,7 @@ router.get('/me',
 
       Promise.join(userPromise, contactsPromise, function onBothPromises(user, contacts) {
         // Fetch the contact info for each contact.
-        const contactInfo = contacts.map(function pickName(contact) {
-          return contact.name;
-        });
+        const contactInfo = contacts.map(contact => contact.name);
 
         // Return the user info.
         sendSuccessResponse(res, 'User Info', {
