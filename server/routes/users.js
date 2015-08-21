@@ -19,7 +19,7 @@ const router = express.Router();
 router.delete('/me',
     passport.authenticate('bearer', {'session': false}),
     function deleteUser(req, res) {
-      // Ensure that the user exists, then delete the user.
+      // Delete the user.
       User.remove({'_id': req.user._id}).then(function onRemove() {
         sendSuccessResponse(res, 'Removed user', {});
       }).catch(function onFailedRemove(err) {
@@ -36,17 +36,24 @@ router.put('/me',
         if (!user) {
           return Promise.reject(new Error('Could not find user'));
         }
+        // Set the phone number and email and save the user.
         if (req.body.phone !== undefined) {
           user.phone = req.body.phone;
         }
         if (req.body.email !== undefined) {
           user.email = req.body.email;
         }
+        Promise.promisifyAll(user);
         return user.saveAsync();
-      }).then(function onSave(user) {
+      }).then(function onSave(users) {
+        // If there's no error saving, return the user.
+        if (users.length === 0) {
+          return Promise.reject(new Error('Could not save user'));
+        }
         sendSuccessResponse(res, 'Updated user', {
-          'phone': user.phone,
-          'email': user.email,
+          'name': users[0].name,
+          'phone': users[0].phone,
+          'email': users[0].email,
         });
       }).catch(function onError(err) {
         sendFailureResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, err);

@@ -23,31 +23,34 @@ const router = express.Router();
 router.get('/connections',
     passport.authenticate('bearer', {'session': false}),
     function getConnections(req, res) {
+      // Find the user.
       User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
         if (!user) {
           return Promise.reject(new Error('Could not find user'));
-        } else {
-          const connections = user.connection_requests.map(function pick(cr) {
-            return {
-              'sender': cr.sender,
-              'recipient': cr.recipient,
-              'accepted': cr.accepted,
-            };
-          });
-          sendSuccessResponse(res, 'Connection requests', connections);
         }
+        // Extract the connection info for each connection request.
+        const connections = user.connection_requests.map(function pick(cr) {
+          return {
+            'sender': cr.sender,
+            'recipient': cr.recipient,
+            'accepted': cr.accepted,
+          };
+        });
+        sendSuccessResponse(res, 'Connection requests', connections);
       }).catch(function onError(err) {
         sendFailureResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, err);
       });
     });
 
+// Send a connection request to another user.
 router.post('/connections',
     passport.authenticate('bearer', {'session': false}),
     function makeConnection(req, res) {
-      // Determine who to send connection request to and find the user to send to..
+      // Find the user who is the recipient of this connection request.
       const findUserPromise = checkParamsAsync(['email'], req, res).then(function onFound(params) {
         return User.findOneAsync({'email': params.email});
       });
+
       const findConnectionPromise = findUserPromise.then(function onFound(user) {
         // Ensure that the recipient exists and ensure that this connection request does not already
         // exist.
@@ -56,20 +59,28 @@ router.post('/connections',
         }
         return ConnectionRequest.findOneAsync({'sender': req.user._id, 'recipient': user._id});
       });
+
       Promise.join(findUserPromise, findConnectionPromise, function onFound(user, cr) {
+        // If there's already a connection request, don't make another one.
         if (cr) {
           return Promise.reject(new Error('Connection request already exists'));
         }
+
+        // Create the connection request and save it.
         const connectionRequest = new ConnectionRequest();
         connectionRequest.sender = req.user._id;
         connectionRequest.recipient = user._id;
         connectionRequest.accepted = false;
+
         Promise.promisifyAll(connectionRequest);
         return connectionRequest.saveAsync();
       }).then(function onSave(connectionRequests) {
+        // Handle a failed save.
         if (connectionRequests.length === 0) {
           return Promise.reject(new Error('Could not save connection request'));
         }
+
+        // Return the connection info.
         const connectionRequest = connectionRequests[0];
         sendSuccessResponse(res, 'Created connection request', {
           'sender': connectionRequest.sender,

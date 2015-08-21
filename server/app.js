@@ -1,5 +1,7 @@
-import express from 'express';
+// Main entrypoint for the application.
+
 import 'source-map-support/register';
+import express from 'express';
 import path from 'path';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -25,6 +27,7 @@ app.use(cookieParser());
 app.use(require('stylus').middleware(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Set up routes.
 app.use('/', routes);
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/users', usersRoute);
