@@ -34,7 +34,7 @@ router.put('/me',
       // Find the user.
       User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
         if (!user) {
-          throw new Error('Could not find user');
+          return Promise.reject(new Error('Could not find user'));
         }
         if (req.body.phone !== undefined) {
           user.phone = req.body.phone;
@@ -63,7 +63,7 @@ router.get('/me',
       // Find the user's contacts.
       const contactsPromise = userPromise.then(function onFoundUser(user) {
         if (!user) {
-          throw new Error('Could not find user');
+          return Promise.reject(new Error('Could not find user'));
         }
         return User.find({'_id': {
           '$in': user.contacts,

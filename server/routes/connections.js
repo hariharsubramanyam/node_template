@@ -25,7 +25,7 @@ router.get('/connections',
     function getConnections(req, res) {
       User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
         if (!user) {
-          Promise.reject(new Error('Could not find user'));
+          return Promise.reject(new Error('Could not find user'));
         } else {
           const connections = user.connection_requests.map(function pick(cr) {
             return {

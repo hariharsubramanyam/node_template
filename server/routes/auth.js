@@ -56,7 +56,7 @@ router.post('/token', function registerUser(req, res) {
   }).then(function foundUser(user) {
     // Ensure the user exists and generate a salt.
     if (user) {
-      throw new Error('Username already exists');
+      return Promise.reject(new Error('Username already exists'));
     }
     return bcrypt.genSaltAsync(SALT);
   }).then(function gotSalt(salt) {

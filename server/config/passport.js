@@ -24,7 +24,7 @@ passport.use(new passportLocal.Strategy({
   // Ensure that the user exists and check the password.
   const passwordPromise = userPromise.then(function onFoundUser(user) {
     if (!user) {
-      throw new Error('User does not exist.');
+      return Promise.reject(new Error('User does not exist.'));
     }
     return bcrypt.compareAsync(password, user.hashPassword);
   });
