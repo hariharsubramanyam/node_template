@@ -35,6 +35,15 @@ gulp.task('handlebarsServer', ['cleanServer'], function handlebarsServerTask() {
 gulp.task('serve', ['buildServer'], function serveTask() {
   nodemon({
     'script': './bin/www',
+    'env': {'IS_TEST': false},
+    'tasks': 'buildServer',
+  });
+});
+
+gulp.task('testServer', ['buildServer'], function serveTask() {
+  nodemon({
+    'script': './bin/www',
+    'env': {'IS_TEST': true},
     'tasks': 'buildServer',
   });
 });

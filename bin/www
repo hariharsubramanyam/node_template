@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var app = require('../serverDist/app');
+var app = require('../serverDist/app')(process.env.IS_TEST);
 var debug = require('debug')('urban_safe:server');
 var http = require('http');
 

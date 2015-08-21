@@ -2,13 +2,13 @@
 
 import 'source-map-support/register';
 import mongoose from 'mongoose';
-import {MONGO_URL} from './secrets';
+import {MONGO_URL, MONGO_TEST_URL} from './secrets';
 
-export default function connect(mongoUrl) {
-  let actualUrl = mongoUrl;
-  if (mongoUrl === undefined) {
-    actualUrl = MONGO_URL;
+export default function connect(isTest) {
+  if (isTest) {
+    mongoose.connect(MONGO_TEST_URL);
+  } else {
+    mongoose.connect(MONGO_URL);
   }
-  mongoose.connect(actualUrl);
   return mongoose.connection;
 }

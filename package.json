@@ -31,7 +31,6 @@
     "eslint": "^1.2.0",
     "eslint-config-airbnb": "0.0.7",
     "eslint-plugin-react": "^3.2.3",
-    "frisby": "^0.8.5",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.2.0",
     "gulp-batch": "^1.0.5",
