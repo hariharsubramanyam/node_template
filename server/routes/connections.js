@@ -46,7 +46,7 @@ router.post('/connections',
     function makeConnection(req, res) {
       // Find the user who is the recipient of this connection request.
       const findUserPromise = checkParamsAsync(['email'], req, res).then(function onFound(params) {
-        return User.findOneAsync({'email': params.email});
+        return User.findOneAsync({'email': params.get('email')});
       });
 
       const findConnectionPromise = findUserPromise.then(function onFound(user) {

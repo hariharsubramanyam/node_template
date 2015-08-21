@@ -4,16 +4,16 @@ import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
 
 // Check that the values in 'names' (an array of strings) appear in the request body. If they all
-// appear, extract them and return them in an object with key=param name and value=param value.
+// appear, extract them and return them in a map with key=param name and value=param value.
 export function checkParams(names, req, res, callback) {
-  const params = {};
+  const params = new Map();
   let missingArg = null;
   for (const name of names) {
     if (req.body[name] === undefined) {
       missingArg = name;
       break;
     } else {
-      params[name] = req.body[name];
+      params.set(name, req.body[name]);
     }
   }
   if (missingArg !== null) {
