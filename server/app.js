@@ -7,6 +7,7 @@ import bodyParser from 'body-parser';
 import routes from './routes/index';
 import authRoute from './routes/auth';
 import usersRoute from './routes/users';
+import connectionsRoute from './routes/connections';
 import connectToMongo from './config/mongodb';
 
 connectToMongo();
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/', routes);
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/users', usersRoute);
+app.use('/api/v1/', connectionsRoute);
 
 // catch 404 and forward to error handler
 app.use(function handle404(req, res, next) {
