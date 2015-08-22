@@ -69,28 +69,14 @@ router.get('/me',
     passport.authenticate('bearer', {'session': false}),
     function getUserInfo(req, res) {
       // Find the user.
-      const userPromise = User.findOneAsync({'_id': req.user._id});
-
-      // Find the user's contacts.
-      const contactsPromise = userPromise.then(function onFoundUser(user) {
+      User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
         if (!user) {
           return Promise.reject(new Error('Could not find user'));
         }
-        return User.find({'_id': {
-          '$in': user.contacts,
-        }});
-      });
-
-      Promise.join(userPromise, contactsPromise, function onBothPromises(user, contacts) {
-        // Fetch the contact info for each contact.
-        const contactInfo = contacts.map(contact => contact.name);
-
-        // Return the user info.
         sendSuccessResponse(res, 'User Info', {
           'name': user.name,
           'phone': user.phone,
           'email': user.email,
-          'contacts': contactInfo,
         });
       }).catch(function onError(err) {
         sendFailureResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, err);
