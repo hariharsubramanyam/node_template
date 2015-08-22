@@ -42,11 +42,11 @@ describe('Users', function usersTestSuite() {
   }); // End describe deleting.
 
   describe('Updating', function impl() {
-    it('should allow changing phone number and email', function test() {
-      // Create a user, change the email and phone number, and ensure that it worked.
+    it('should allow changing phone number and name', function test() {
+      // Create a user, change the name and phone number, and ensure that it worked.
       const newPhone = '9999999999';
-      const newEmail = 'newemail@newemail.com';
-      expect(newEmail).to.not.eql(sampleUser.email);
+      const newName = 'the new name';
+      expect(newName).to.not.eql(sampleUser.name);
       expect(newPhone).to.not.eql(sampleUser.phone);
 
       let tokenValue = null;
@@ -55,17 +55,17 @@ describe('Users', function usersTestSuite() {
         tokenValue = res.body.content.token;
         return updateUser(tokenValue, {
           'phone': newPhone,
-          'email': newEmail,
+          'name': newName,
         });
       }).then(function onUpdate(res) {
         ok(res);
         return getUser(tokenValue);
       }).then(function onGet(res) {
         ok(res);
-        expect(res.body.content.email).to.eql(newEmail);
+        expect(res.body.content.name).to.eql(newName);
         expect(res.body.content.phone).to.eql(newPhone);
       });
-    }); // End it should allow changing phone number and email.
+    }); // End it should allow changing phone number and name.
 
     it('should not allow illegal changes', function test() {
       const newPhone = 'failure';

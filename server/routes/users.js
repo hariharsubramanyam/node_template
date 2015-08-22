@@ -27,7 +27,7 @@ router.delete('/me',
       });
     });
 
-// Update the user's phone number or email.
+// Update the user's phone number or name.
 router.put('/me',
     passport.authenticate('bearer', {'session': false}),
     function updateUser(req, res) {
@@ -36,12 +36,12 @@ router.put('/me',
         if (!user) {
           return Promise.reject(new Error('Could not find user'));
         }
-        // Set the phone number and email and save the user.
+        // Set the phone number and name and save the user.
         if (req.body.phone !== undefined) {
           user.phone = req.body.phone;
         }
-        if (req.body.email !== undefined) {
-          user.email = req.body.email;
+        if (req.body.name !== undefined) {
+          user.name = req.body.name;
         }
         Promise.promisifyAll(user);
         return user.saveAsync();
