@@ -14,14 +14,29 @@ export const sampleUser = {
   'email': 'testuser@test.com',
 };
 
+export const sampleUser2 = {
+  'username': 'testusertwo',
+  'password': 'testpassword2',
+  'phone': '1112223344',
+  'email': 'testuser2@test.com',
+};
+
 export function copy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
 
-export function registerUser() {
-  const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
+function registerUserHelper(user) {
+  const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, user);
   return requestPromise(registerUserOptions);
+}
+
+export function registerUser() {
+  return registerUserHelper(sampleUser);
+}
+
+export function registerUser2() {
+  return registerUserHelper(sampleUser2);
 }
 
 export function validateToken(bearer) {

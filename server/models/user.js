@@ -13,9 +13,17 @@ const UserSchema = new mongoose.Schema({
     'unique': true,
     'index': true},
   // Name of this user. Names must consist of letters, spaces, ', and -.
-  'name': {'type': String, 'match': nameRegex, 'required': 'User must have a name.'},
+  'name': {
+    'type': String,
+    'match': nameRegex,
+    'required': 'User must have a name.',
+    'index': true,
+  },
   // The hash of the password for this user.
-  'hashPassword': {'type': String, 'required': 'User must have a password.'},
+  'hashPassword': {
+    'type': String,
+    'required': 'User must have a password.',
+  },
   // Phone number for this user. Phone numbers consist of 10 to 15 digits.
   'phone': {
     'type': String,

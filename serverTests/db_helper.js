@@ -8,9 +8,7 @@ const USER_COLLECTION = 'users';
 const USER_NAME = 'name';
 const USER_ID = '_id';
 
-const CR_COLLECTION = 'connection_requests';
-const CR_SENDER = 'sender';
-const CR_RECIPIENT = 'recipient';
+const CONNECTION_COLLECTION = 'connections';
 
 // Connect the database and trigger a callback (err, db).
 function connectToDb(callback) {
@@ -53,8 +51,18 @@ export function removeUsers(callback) {
   removeCollection(USER_COLLECTION, callback);
 }
 
+export function removeConnections(callback) {
+  removeCollection(CONNECTION_COLLECTION, callback);
+}
+
 export function removeDb(callback) {
-  removeUsers(callback);
+  removeUsers(function onRemoveUsers(err) {
+    if (err) {
+      callback(err);
+    } else {
+      removeConnections(callback);
+    }
+  });
 }
 
 // Find all the users with given id.
@@ -65,22 +73,4 @@ export function findUsersById(id, callback) {
 // Find all the users with given name.
 export function findUsersByName(name, callback) {
   findCollectionByX(USER_COLLECTION, buildCriteria([[USER_NAME, name]]), callback);
-}
-
-// Find all the connection requests sent to a user.
-export function findConnectionRequestsTo(id, callback) {
-  findCollectionByX(CR_COLLECTION, buildCriteria([[CR_RECIPIENT, id]]), callback);
-}
-
-// Find all the connection requests sent from a user.
-export function findConnectionRequestsFrom(id, callback) {
-  findCollectionByX(CR_COLLECTION, buildCriteria([[CR_SENDER, id]]), callback);
-}
-
-// Find all the connection requests between two users.
-export function findConnectionRequestsBetween(fromId, toId, callback) {
-  findCollectionByX(
-      CR_COLLECTION,
-      buildCriteria([[CR_SENDER, fromId], [CR_RECIPIENT, toId]]),
-      callback);
 }

@@ -1,17 +1,18 @@
-// API endpoints for managing connection requests.
+// API endpoints for managing connections.
 
 import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
 import passport from '../config/passport';
 import User from '../models/user';
-import ConnectionRequest from '../models/connection_request';
+import Connection from '../models/connection';
 import Promise from 'bluebird';
 import express from 'express';
 import {sendSuccessResponse, sendFailureResponse} from './route_utils';
 import {checkParams} from './route_utils';
 
+
 Promise.promisifyAll(User);
-Promise.promisifyAll(ConnectionRequest);
+Promise.promisifyAll(Connection);
 const checkParamsAsync = Promise.promisify(checkParams);
 
 // This causes a lint error because only constructors are allowed to have positive letters.
@@ -19,75 +20,90 @@ const checkParamsAsync = Promise.promisify(checkParams);
 const router = express.Router();
 /*eslint-enable*/
 
-// Get all the connection requests for the given user.
+function isConnectionBetween(idA, idB) {
+  const aSendBRec = {
+    '$and': [
+      {'sender': idA},
+      {'recipient': idB},
+    ],
+  };
+  const bSendARec = {
+    '$and': [
+      {'sender': idB},
+      {'recipient': idA},
+    ],
+  };
+  const connectionExists = {
+    '$or': [
+      aSendBRec,
+      bSendARec,
+    ],
+  };
+
+  return Connection.findOneAsync(connectionExists);
+}
+
+// Get all the connections for the given user.
 router.get('/connections',
     passport.authenticate('bearer', {'session': false}),
     function getConnections(req, res) {
-      // Find the user.
-      User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
-        if (!user) {
-          return Promise.reject(new Error('Could not find user'));
-        }
-        // Extract the connection info for each connection request.
-        const connections = user.connectionRequests.map(cr => ({
-          'sender': cr.sender,
-          'recipient': cr.recipient,
-          'accepted': cr.accepted,
-        }));
-        sendSuccessResponse(res, 'Connection requests', connections);
+      const filterCondition = {
+        '$or': [
+          {'sender': req.user._id},
+          {'recipient': req.user._id},
+        ],
+      };
+      Connection.findAsync(filterCondition).then(function onFound(connections) {
+        sendSuccessResponse(res, 'success', connections);
       }).catch(function onError(err) {
-        sendFailureResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, err);
+        sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
       });
     });
 
-// Send a connection request to another user.
+// Send a connection request to a given user.
 router.post('/connections',
     passport.authenticate('bearer', {'session': false}),
     function makeConnection(req, res) {
-      // Find the user who is the recipient of this connection request.
-      const findUserPromise = checkParamsAsync(['email'], req, res).then(function onFound(params) {
-        return User.findOneAsync({'email': params.get('email')});
+      const userPromise = checkParamsAsync(['email'], req, res).then(function onValid() {
+        if (req.user.email === req.body.email) {
+          const err = new Error('You cannot send a connection request to yourself');
+          err.statusCode = HttpStatus.BAD_REQUEST;
+          return Promise.reject(err);
+        }
+        return User.findOneAsync({'email': req.body.email});
       });
 
-      const findConnectionPromise = findUserPromise.then(function onFound(user) {
-        // Ensure that the recipient exists and ensure that this connection request does not already
-        // exist.
+      const connectionPromise = userPromise.then(function onFoundUser(user) {
         if (!user) {
-          return Promise.reject(new Error('Could not find user'));
+          const err = new Error('Cannot send connection request because recipient does not exist');
+          err.statusCode = HttpStatus.NOT_FOUND;
+          return Promise.reject(err);
         }
-        return ConnectionRequest.findOneAsync({'sender': req.user._id, 'recipient': user._id});
+        return isConnectionBetween(user._id, req.user._id);
       });
 
-      Promise.join(findUserPromise, findConnectionPromise, function onFound(user, cr) {
-        // If there's already a connection request, don't make another one.
-        if (cr) {
-          return Promise.reject(new Error('Connection request already exists'));
+      Promise.join(userPromise, connectionPromise, function onPromises(user, connection) {
+        if (connection) {
+          const err = new Error('There is already a connection or connection request');
+          err.statusCode = HttpStatus.FORBIDDEN;
+          return Promise.reject(err);
         }
-
-        // Create the connection request and save it.
-        const connectionRequest = new ConnectionRequest();
+        const connectionRequest = new Connection();
         connectionRequest.sender = req.user._id;
         connectionRequest.recipient = user._id;
         connectionRequest.accepted = false;
-
         Promise.promisifyAll(connectionRequest);
         return connectionRequest.saveAsync();
-        // TODO(hsubrama): Make sure you also add the connection request id to both users.
-      }).then(function onSave(connectionRequests) {
-        // Handle a failed save.
-        if (connectionRequests.length !== 2 || connectionRequests[1] !== 1) {
-          return Promise.reject(new Error('Could not save connection request'));
+      }).then(function onSave(connections) {
+        if (connections.length !== 2 || connections[1] !== 1) {
+          return Promise.reject(new Error('Could not save connection'));
         }
-
-        // Return the connection info.
-        const connectionRequest = connectionRequests[0];
         sendSuccessResponse(res, 'Created connection request', {
-          'sender': connectionRequest.sender,
-          'recipient': connectionRequest.recipient,
-          'accepted': connectionRequest.accepted,
+          'sender': connections[0].sender,
+          'recipient': connections[0].recipient,
         });
       }).catch(function onError(err) {
-        sendFailureResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, err);
+        sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
       });
     });
 
