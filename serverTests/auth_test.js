@@ -22,27 +22,56 @@ function deleteDb(done) {
   removeDb(done);
 }
 
+function registerUser() {
+  const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
+  return requestPromise(registerUserOptions);
+}
+
+function validateToken(bearer) {
+  const validateTokenOptions = createRequestOptions(authUrl, 'GET', {}, {}, bearer);
+  return requestPromise(validateTokenOptions);
+}
+
+function getToken() {
+  const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
+  return requestPromise(getTokenOptions);
+}
+
+function ok(res) {
+  expect(res.statusCode).to.eql(HttpStatus.OK);
+  expect(res.body.success).to.be.true;
+  return res;
+}
+
+function unauthorized(res) {
+  expect(res.statusCode).to.eql(HttpStatus.UNAUTHORIZED);
+  return res;
+}
+
+function tokenIsString(res) {
+  expect(res.body.content.token).to.be.a('string');
+  expect(res.body.content.token.length).to.be.above(0);
+
+  return res;
+}
+
 describe('Authentication', function auth() {
   beforeEach(deleteDb);
   afterEach(deleteDb);
 
   describe('Registering', function describeImpl() {
     it('should allow registering', function test() {
-      const requestOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
       // Register a user and ensure we get a token for the user.
-      return requestPromise(requestOptions).then(function onRegister(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
-        expect(res.body.success).to.be.true;
+      return registerUser().then(function onRegister(res) {
+        tokenIsString(ok(res));
         expect(res.body.content.name).to.eql(sampleUser.username);
-        expect(res.body.content.token).to.be.a('string');
       });
     }); // End it should allow registering.
 
     it('should not allow registering twice', function test() {
-      const requestOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
-      return requestPromise(requestOptions).then(function onFirstRegister(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
-        return requestPromise(requestOptions);
+      return registerUser().then(function onFirstRegister(res) {
+        ok(res);
+        return registerUser();
       }).then(function onSecondRegister(res) {
         expect(res.statusCode).to.eql(HttpStatus.FORBIDDEN);
       });
@@ -70,7 +99,7 @@ describe('Authentication', function auth() {
         expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
         return requestPromise(createMissingOptions('fakeProperty'));
       }).then(function onMissingFakeProperty(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
+        ok(res);
       });
     }); // End it should not allow missing arguments when registering.
   }); // End describe registering.
@@ -78,24 +107,19 @@ describe('Authentication', function auth() {
   describe('Getting token', function impl() {
     it('should allow getting a token', function test() {
       // Create a new user.
-      const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
-      return requestPromise(registerUserOptions).then(function onRegister(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
+      return registerUser().then(function onRegister(res) {
+        ok(res);
         // Get a token.
-        const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
-        return requestPromise(getTokenOptions);
+        return getToken();
       }).then(function onToken(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
-        expect(res.body.success).to.be.true;
-        expect(res.body.content.token).to.be.a('string');
+        tokenIsString(ok(res));
         expect(res.body.content.name).to.eql(sampleUser.username);
       });
     }); // End it should allow getting a token.
 
     it('should not give token for invalid user', function test() {
       // Try to get a token for a user who doesn't exist and ensure that we get a 404.
-      const fakeUserOptions = createRequestOptions(authUrl, 'PUT', {}, copy(sampleUser));
-      return requestPromise(fakeUserOptions).then(function onRegister(res) {
+      return getToken().then(function onRegister(res) {
         expect(res.statusCode).to.eql(HttpStatus.NOT_FOUND);
       });
     });
@@ -104,18 +128,12 @@ describe('Authentication', function auth() {
       // Create a user and check the token. Then fetch a new token and ensure that the token value
       // is different.
       let tokenValue = null;
-      const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
-      return requestPromise(registerUserOptions).then(function onRegister(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
-        expect(res.body.success).to.be.true;
-        expect(res.body.content.token).to.be.a('string');
+      return registerUser().then(function onRegister(res) {
+        tokenIsString(ok(res));
         tokenValue = res.body.content.token;
-        const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
-        return requestPromise(getTokenOptions);
+        return getToken();
       }).then(function onToken(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
-        expect(res.body.success).to.be.true;
-        expect(res.body.content.token).to.be.a('string');
+        tokenIsString(ok(res));
         expect(tokenValue).to.be.a('string');
         expect(res.body.content.token).to.not.eql(tokenValue);
       });
@@ -123,42 +141,46 @@ describe('Authentication', function auth() {
 
     it('should eliminate old token when we get a new one', function test() {
       let tokenValue = null;
-      const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
-      return requestPromise(registerUserOptions).then(function onRegister(res) {
+      return registerUser().then(function onRegister(res) {
         tokenValue = res.body.content.token;
-        const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
-        return requestPromise(getTokenOptions);
+        return getToken();
       }).then(function onToken(res) {
         expect(res.body.content.token).to.not.eql(tokenValue);
-        const validateTokenOptions = createRequestOptions(
-            authUrl,
-            'GET',
-            {},
-            sampleUser,
-            tokenValue);
-        return requestPromise(validateTokenOptions);
+        return validateToken(tokenValue);
       }).then(function onValidate(res) {
-        expect(res.statusCode).to.eql(HttpStatus.UNAUTHORIZED);
+        unauthorized(res);
       });
     }); // End it should eliminate old token when we get a new one.
   }); // End describe getting token.
 
   describe('Validating token', function impl() {
     it('should validate tokens', function test() {
-      let tokenValue = null;
-      const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
-      return requestPromise(registerUserOptions).then(function onRegister(res) {
-        tokenValue = res.body.content.token;
-        const validateTokenOptions = createRequestOptions(
-            authUrl,
-            'GET',
-            {},
-            sampleUser,
-            tokenValue);
-        return requestPromise(validateTokenOptions);
+      return registerUser().then(function onRegister(res) {
+        return validateToken(res.body.content.token);
       }).then(function onToken(res) {
-        expect(res.statusCode).to.eql(HttpStatus.OK);
+        ok(res);
       });
-    });
+    }); // End it should validate tokens.
+
+    it('should not validate nonsense', function test() {
+      return validateToken('nonsense').then(function onValidate(res) {
+        unauthorized(res);
+      });
+    }); // End it should not validate nonsense.
+
+    it('should not validate expired token', function test() {
+      let tokenValue = null;
+      return registerUser().then(function onRegister(res) {
+        tokenIsString(ok(res));
+        tokenValue = res.body.content.token;
+        return getToken();
+      }).then(function onToken(res) {
+        tokenIsString(ok(res));
+        expect(tokenValue).to.not.eql(res.body.content.token);
+        return validateToken(tokenValue);
+      }).then(function onValidate(res) {
+        unauthorized(res);
+      });
+    }); // End it should not validate expired token.
   }); // End describe validating token.
 });
