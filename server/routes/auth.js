@@ -103,6 +103,9 @@ router.post('/token', function registerUser(req, res) {
       'name': users[0].name,
     });
   }).catch(function onError(err) {
+    if (err.name === 'ValidationError') {
+      err.statusCode = HttpStatus.BAD_REQUEST;
+    }
     sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err.toString());
   });
 });

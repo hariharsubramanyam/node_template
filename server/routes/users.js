@@ -48,7 +48,8 @@ router.put('/me',
       }).then(function onSave(users) {
         // If there's no error saving, return the user.
         if (users.length !== 2 || users[1] !== 1) {
-          return Promise.reject(new Error('Could not save user'));
+          const err = new Error('Could not save user, check your request');
+          return Promise.reject(err);
         }
         sendSuccessResponse(res, 'Updated user', {
           'name': users[0].name,
@@ -56,7 +57,10 @@ router.put('/me',
           'email': users[0].email,
         });
       }).catch(function onError(err) {
-        sendFailureResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, err);
+        if (err.name === 'ValidationError') {
+          err.statusCode = HttpStatus.BAD_REQUEST;
+        }
+        sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
       });
     });
 

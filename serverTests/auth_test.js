@@ -7,48 +7,55 @@ import requestPromise from 'request-promise';
 
 const authUrl = BASE_URL + 'auth/token/';
 
-const sampleUser = {
+export const sampleUser = {
   'username': 'testuser',
   'password': 'testpassword',
   'phone': '1112223333',
   'email': 'testuser@test.com',
 };
 
-function copy(obj) {
+export function copy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function deleteDb(done) {
-  removeDb(done);
-}
 
-function registerUser() {
+export function registerUser() {
   const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
   return requestPromise(registerUserOptions);
 }
 
-function validateToken(bearer) {
+export function validateToken(bearer) {
   const validateTokenOptions = createRequestOptions(authUrl, 'GET', {}, {}, bearer);
   return requestPromise(validateTokenOptions);
 }
 
-function getToken() {
+export function getToken() {
   const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
   return requestPromise(getTokenOptions);
 }
 
-function ok(res) {
+export function ok(res) {
   expect(res.statusCode).to.eql(HttpStatus.OK);
   expect(res.body.success).to.be.true;
   return res;
 }
 
-function unauthorized(res) {
+export function unauthorized(res) {
   expect(res.statusCode).to.eql(HttpStatus.UNAUTHORIZED);
   return res;
 }
 
-function tokenIsString(res) {
+export function notFound(res) {
+  expect(res.statusCode).to.eql(HttpStatus.NOT_FOUND);
+  return res;
+}
+
+export function badRequest(res) {
+  expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
+  return res;
+}
+
+export function tokenIsString(res) {
   expect(res.body.content.token).to.be.a('string');
   expect(res.body.content.token.length).to.be.above(0);
 
@@ -56,8 +63,8 @@ function tokenIsString(res) {
 }
 
 describe('Authentication', function auth() {
-  beforeEach(deleteDb);
-  afterEach(deleteDb);
+  beforeEach(removeDb);
+  afterEach(removeDb);
 
   describe('Registering', function describeImpl() {
     it('should allow registering', function test() {
@@ -87,16 +94,16 @@ describe('Authentication', function auth() {
       // Remove the fields one at a time and ensure that the request fails.
       // Then, remove a fake field and ensure that the request works.
       return requestPromise(createMissingOptions('username')).then(function onMissingUsername(res) {
-        expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
+        badRequest(res);
         return requestPromise(createMissingOptions('email'));
       }).then(function onMissingEmail(res) {
-        expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
+        badRequest(res);
         return requestPromise(createMissingOptions('phone'));
       }).then(function onMissingPhone(res) {
-        expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
+        badRequest(res);
         return requestPromise(createMissingOptions('password'));
       }).then(function onMissingPassword(res) {
-        expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
+        badRequest(res);
         return requestPromise(createMissingOptions('fakeProperty'));
       }).then(function onMissingFakeProperty(res) {
         ok(res);
@@ -120,7 +127,7 @@ describe('Authentication', function auth() {
     it('should not give token for invalid user', function test() {
       // Try to get a token for a user who doesn't exist and ensure that we get a 404.
       return getToken().then(function onRegister(res) {
-        expect(res.statusCode).to.eql(HttpStatus.NOT_FOUND);
+        notFound(res);
       });
     });
 
