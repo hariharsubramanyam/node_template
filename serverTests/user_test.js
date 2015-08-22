@@ -97,6 +97,6 @@ describe('Users', function usersTestSuite() {
         expect(content.phone).to.eql(sampleUser.phone);
         expect(content.name).to.eql(sampleUser.username);
       });
-    });
+    }); // End it should allow getting user info.
   }); // End describe getting.
 });
