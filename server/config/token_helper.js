@@ -27,12 +27,8 @@ export function verifyToken(token, callback) {
 
     // Ensure that there's a user associated with this token.
     User.findOneAsync({'_id': decodedToken.userId}).then(function foundUser(user) {
-      if (!user) {
-        callback('The user does not exist.');
-      } else if (decodedToken.expires <= Date.now()) {
-        callback('The token has expired.');
-      } else if (user.token !== decodedToken) {
-        callback('The token is incorrect.');
+      if ((!user) || (decodedToken.expires <= Date.now()) || (user.token !== token)) {
+        callback(null, false);
       } else {
         // Ensure the token is stored in the database.
         callback(null, user);
@@ -41,6 +37,6 @@ export function verifyToken(token, callback) {
       callback(err);
     });
   } catch (ex) {
-    callback('Could not decode token');
+    callback(null, false);
   }
 }

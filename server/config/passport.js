@@ -2,6 +2,7 @@
 // HTTP Bearer token for authenticating each request.
 
 import 'source-map-support/register';
+import HttpStatus from 'http-status-codes';
 import bcrypt from 'bcrypt';
 import passport from 'passport';
 import passportLocal from 'passport-local';
@@ -24,7 +25,9 @@ passport.use(new passportLocal.Strategy({
   // Ensure that the user exists and check the password.
   const passwordPromise = userPromise.then(function onFoundUser(user) {
     if (!user) {
-      return Promise.reject(new Error('User does not exist.'));
+      const err = new Error('User does not exist');
+      err.statusCode = HttpStatus.NOT_FOUND;
+      return Promise.reject(err);
     }
     return bcrypt.compareAsync(password, user.hashPassword);
   });

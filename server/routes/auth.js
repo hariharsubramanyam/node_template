@@ -43,7 +43,7 @@ router.put('/token',
         }
         sendSuccessResponse(res, 'Successfully obtained token', {
           'token': users[0].token,
-          'username': users[0].name,
+          'name': users[0].name,
         });
       }).catch(function onErr(err) {
         sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
@@ -58,7 +58,7 @@ router.get('/token',
     passport.authenticate('bearer', {'session': false}),
     function validateToken(req, res) {
       sendSuccessResponse(res, 'Valid token', {
-        'username': req.user.username,
+        'name': req.user.username,
       });
     });
 
@@ -88,6 +88,7 @@ router.post('/token', function registerUser(req, res) {
     user.name = req.body.username;
     user.phone = req.body.phone;
     user.email = req.body.email;
+    user.token = createToken(user);
 
     Promise.promisifyAll(user);
     return user.saveAsync();
@@ -97,11 +98,9 @@ router.post('/token', function registerUser(req, res) {
       err.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       return Promise.reject(err);
     }
-    // Create a token.
-    const accessToken = createToken(users[0]);
     sendSuccessResponse(res, 'Successfully registered', {
-      'token': accessToken,
-      'username': users[0].name,
+      'token': users[0].token,
+      'name': users[0].name,
     });
   }).catch(function onError(err) {
     sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err.toString());
