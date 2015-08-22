@@ -44,10 +44,10 @@ router.put('/me',
           user.email = req.body.email;
         }
         Promise.promisifyAll(user);
-        return user.saveAsync();
+        return user.saveAsync()
       }).then(function onSave(users) {
         // If there's no error saving, return the user.
-        if (users.length === 0) {
+        if (users.length !== 2 || users[1] !== 1) {
           return Promise.reject(new Error('Could not save user'));
         }
         sendSuccessResponse(res, 'Updated user', {

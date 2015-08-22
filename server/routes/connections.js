@@ -75,7 +75,7 @@ router.post('/connections',
         // TODO(hsubrama): Make sure you also add the connection request id to both users.
       }).then(function onSave(connectionRequests) {
         // Handle a failed save.
-        if (connectionRequests.length === 0) {
+        if (connectionRequests.length !== 2 || connectionRequests[1] !== 1) {
           return Promise.reject(new Error('Could not save connection request'));
         }
 

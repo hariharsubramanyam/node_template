@@ -56,4 +56,20 @@ describe('Authentication', function auth() {
       expect(res.statusCode).to.eql(HttpStatus.OK);
     });
   }); // End it should not allow missing arguments when registering.
+
+  it('should allow getting a token', function test() {
+    // Create a new user.
+    const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, sampleUser);
+    return requestPromise(registerUserOptions).then(function onRegister(res) {
+      expect(res.statusCode).to.eql(HttpStatus.OK);
+      // Get a token.
+      const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
+      return requestPromise(getTokenOptions);
+    }).then(function onToken(res) {
+      expect(res.statusCode).to.eql(HttpStatus.OK);
+      expect(res.body.success).to.be.true;
+      expect(res.body.content.token).to.be.a('string');
+      expect(res.body.content.username).to.eql(sampleUser.username);
+    });
+  });
 });

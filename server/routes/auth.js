@@ -26,10 +26,27 @@ const router = express.Router();
 router.put('/token',
     passport.authenticate('local', {'session': false}),
     function tokenCallback(req, res) {
-      const token = createToken(req.user);
-      sendSuccessResponse(res, 'Successfully obtained token', {
-        'token': token,
-        'username': req.user.username,
+      User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
+        if (!user) {
+          const err = new Error('Could not find user');
+          err.statusCode = HttpStatus.FORBIDDEN;
+          return Promise.reject(err);
+        }
+        user.token = createToken(user);
+        Promise.promisifyAll(user);
+        return user.saveAsync();
+      }).then(function onSave(users) {
+        if (users.length !== 2 || users[1] !== 1) {
+          const err = new Error('Could not save user');
+          err.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+          return Promise.reject(err);
+        }
+        sendSuccessResponse(res, 'Successfully obtained token', {
+          'token': users[0].token,
+          'username': users[0].name,
+        });
+      }).catch(function onErr(err) {
+        sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
       });
     });
 
@@ -74,12 +91,17 @@ router.post('/token', function registerUser(req, res) {
 
     Promise.promisifyAll(user);
     return user.saveAsync();
-  }).then(function onUserSave(user) {
+  }).then(function onUserSave(users) {
+    if (users.length !== 2 || users[1] !== 1) {
+      const err = new Error('Could not save user');
+      err.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      return Promise.reject(err);
+    }
     // Create a token.
-    const accessToken = createToken(user);
+    const accessToken = createToken(users[0]);
     sendSuccessResponse(res, 'Successfully registered', {
       'token': accessToken,
-      'username': user.name,
+      'username': users[0].name,
     });
   }).catch(function onError(err) {
     sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err.toString());
