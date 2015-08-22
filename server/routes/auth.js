@@ -56,7 +56,9 @@ router.post('/token', function registerUser(req, res) {
   }).then(function foundUser(user) {
     // Ensure the user exists and generate a salt.
     if (user) {
-      return Promise.reject(new Error('Username already exists'));
+      const err = new Error('Username already exists');
+      err.statusCode = HttpStatus.FORBIDDEN;
+      return Promise.reject(err);
     }
     return bcrypt.genSaltAsync(SALT);
   }).then(function gotSalt(salt) {
@@ -80,7 +82,7 @@ router.post('/token', function registerUser(req, res) {
       'username': user.name,
     });
   }).catch(function onError(err) {
-    sendFailureResponse(res, HttpStatus.OK, err.toString());
+    sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err.toString());
   });
 });
 

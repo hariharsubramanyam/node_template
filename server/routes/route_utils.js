@@ -17,7 +17,9 @@ export function checkParams(names, req, res, callback) {
     }
   }
   if (missingArg !== null) {
-    callback('You are missing the ' + missingArg + ' param');
+    const err = new Error('You are missing the ' + missingArg + ' param');
+    err.statusCode = HttpStatus.BAD_REQUEST;
+    callback(err);
   } else {
     callback(null, params);
   }
