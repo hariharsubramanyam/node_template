@@ -28,7 +28,6 @@ export function checkParams(names, req, res, callback) {
 // Send a JSON response indicating a successful operation.
 export function sendSuccessResponse(res, message, content) {
   res.status(HttpStatus.OK).json({
-    'success': true,
     'message': message.toString(),
     'content': content,
   });
@@ -37,7 +36,6 @@ export function sendSuccessResponse(res, message, content) {
 // Send a JSON response indicating a failed operation.
 export function sendFailureResponse(res, code, message) {
   res.status(code).json({
-    'success': false,
     'message': message.toString(),
   });
 }

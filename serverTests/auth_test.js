@@ -36,7 +36,6 @@ export function getToken() {
 
 export function ok(res) {
   expect(res.statusCode).to.eql(HttpStatus.OK);
-  expect(res.body.success).to.be.true;
   return res;
 }
 
