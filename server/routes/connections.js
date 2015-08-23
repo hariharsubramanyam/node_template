@@ -2,18 +2,20 @@
 
 import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
+import mongoose from 'mongoose';
 import passport from '../config/passport';
 import User from '../models/user';
 import Connection from '../models/connection';
 import Promise from 'bluebird';
 import express from 'express';
 import {sendSuccessResponse, sendFailureResponse} from './route_utils';
-import {checkBody} from './route_utils';
+import {checkBody, checkParams} from './route_utils';
 
 
 Promise.promisifyAll(User);
 Promise.promisifyAll(Connection);
 const checkBodyAsync = Promise.promisify(checkBody);
+const checkParamsAsync = Promise.promisify(checkParams);
 
 // This causes a lint error because only constructors are allowed to have positive letters.
 /*eslint-disable*/
@@ -93,6 +95,7 @@ router.get('/connections',
           return {
             sender,
             recipient,
+            'id': connection._id.toString(),
             'accepted': connection.accepted,
           };
         });
@@ -141,9 +144,44 @@ router.post('/connections',
           return Promise.reject(new Error('Could not save connection'));
         }
         sendSuccessResponse(res, 'Created connection request', {
+          'id': connections[0]._id.toString(),
+          'accepted': false,
           'sender': req.user.email,
           'recipient': req.body.email,
         });
+      }).catch(function onError(err) {
+        sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
+      });
+    });
+
+// Accept a connection.
+router.put('/connections/:id',
+    passport.authenticate('bearer', {'session': false}),
+    function acceptConnection(req, res) {
+      checkParamsAsync(['id'], req, res).then(function onParams(params) {
+        const connectionId = new mongoose.Types.ObjectId(params.get('id'));
+        return Connection.findOneAsync({'_id': connectionId});
+      }).then(function onFound(connection) {
+        if (!connection) {
+          const err = new Error('Connection with given id not found');
+          err.statusCode = HttpStatus.NOT_FOUND;
+          return Promise.reject(err);
+        }
+        if (!connection.recipient.equals(req.user._id)) {
+          const err = new Error('You cannot change a connection request you did not receive');
+          err.statusCode = HttpStatus.FORBIDDEN;
+          return Promise.reject(err);
+        }
+        connection.accepted = true;
+        Promise.promisifyAll(connection);
+        return connection.saveAsync();
+      }).then(function onSave(connections) {
+        if (connections.length !== 2 || connections[1] !== 1) {
+          const err = new Error('Could not save connection');
+          err.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+          return Promise.reject(err);
+        }
+        sendSuccessResponse(res, 'Accepted connection request', {});
       }).catch(function onError(err) {
         sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
       });

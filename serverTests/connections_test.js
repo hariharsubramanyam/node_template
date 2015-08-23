@@ -99,4 +99,44 @@ describe('Connections', function connectionsTestSuite() {
       });
     }); // End it should return no connection requests when there are none.
   }); // End describe getting.
+
+  describe('Accepting', function impl() {
+    it('should allow accepting connection requests', function test() {
+      let tokenOne = null;
+      let tokenTwo = null;
+      let connectionRequestId = null;
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onFirstRegister(res) {
+        statusHelper.ok(res);
+        tokenOne = res.body.content.token;
+        return api.registerUserAsync(api.makeSampleUserTwo());
+      }).then(function onSecondRegister(res) {
+        statusHelper.ok(res);
+        tokenTwo = res.body.content.token;
+        return api.sendConnectionRequestAsync(tokenOne, api.makeSampleUserTwo().email);
+      }).then(function onSentConnection(res) {
+        statusHelper.ok(res);
+        connectionRequestId = res.body.content.id;
+        expect(connectionRequestId).to.be.a('string');
+        expect(res.body.content.accepted).to.be.false;
+        expect(connectionRequestId.length).to.be.above(0);
+        return api.getConnectionsAsync(tokenTwo);
+      }).then(function onGotConnections(res) {
+        statusHelper.ok(res);
+        const conns = res.body.content;
+        expect(conns.length).to.eql(1);
+        expect(conns[0].id).to.eql(connectionRequestId);
+        expect(conns[0].accepted).to.be.false;
+        return api.acceptConnectionRequestAsync(tokenTwo, connectionRequestId);
+      }).then(function onAccepted(res) {
+        statusHelper.ok(res);
+        return api.getConnectionsAsync(tokenOne);
+      }).then(function onGotConnections(res) {
+        statusHelper.ok(res);
+        const conns = res.body.content;
+        expect(conns.length).to.eql(1);
+        expect(conns[0].id).to.eql(connectionRequestId);
+        expect(conns[0].accepted).to.be.true;
+      });
+    }); // End it should allow accepting connection requests.
+  }); // End describe accepting.
 });
