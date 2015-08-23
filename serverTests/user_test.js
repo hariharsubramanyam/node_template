@@ -1,9 +1,10 @@
 import 'source-map-support/register';
-import {removeDb} from './db_helper';
-import {deleteUser, updateUser, getUser, registerUser, getToken, sampleUser} from './request_helper';
+import {removeDb, BASE_URL} from './db_helper';
 import {ok, notFound, badRequest} from './status_helper';
+import Api from './api';
 import {expect} from 'chai';
 
+const api = new Api(BASE_URL);
 
 describe('Users', function usersTestSuite() {
   beforeEach(removeDb);
@@ -12,12 +13,12 @@ describe('Users', function usersTestSuite() {
   describe('Deleting', function impl() {
     it('should allow deleting a user who exists', function test() {
       // Register a user, delete the user, and try to login as that user - it should fail.
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
-        return deleteUser(res.body.content.token);
+        return api.deleteUser(res.body.content.token);
       }).then(function onDelete(res) {
         ok(res);
-        return getToken();
+        return api.getToken(api.makeSampleUserOne());
       }).then(function onLogin(res) {
         notFound(res);
       });
@@ -29,20 +30,20 @@ describe('Users', function usersTestSuite() {
       // Create a user, change the name and phone number, and ensure that it worked.
       const newPhone = '9999999999';
       const newName = 'the new name';
-      expect(newName).to.not.eql(sampleUser.name);
-      expect(newPhone).to.not.eql(sampleUser.phone);
+      expect(newName).to.not.eql(api.makeSampleUserOne().name);
+      expect(newPhone).to.not.eql(api.makeSampleUserOne().phone);
 
       let tokenValue = null;
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         tokenValue = res.body.content.token;
-        return updateUser(tokenValue, {
+        return api.updateUser(tokenValue, {
           'phone': newPhone,
           'name': newName,
         });
       }).then(function onUpdate(res) {
         ok(res);
-        return getUser(tokenValue);
+        return api.getUser(tokenValue);
       }).then(function onGet(res) {
         ok(res);
         expect(res.body.content.name).to.eql(newName);
@@ -52,12 +53,12 @@ describe('Users', function usersTestSuite() {
 
     it('should not allow illegal changes', function test() {
       const newPhone = 'failure';
-      expect(newPhone).to.not.eql(sampleUser.phone);
+      expect(newPhone).to.not.eql(api.makeSampleUserOne().phone);
       let tokenValue = null;
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         tokenValue = res.body.content.token;
-        return updateUser(tokenValue, {
+        return api.updateUser(tokenValue, {
           'phone': newPhone,
         });
       }).then(function onUpdate(res) {
@@ -69,16 +70,16 @@ describe('Users', function usersTestSuite() {
   describe('Getting', function impl() {
     it('should allow getting user info', function test() {
       let tokenValue = null;
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         tokenValue = res.body.content.token;
-        return getUser(tokenValue);
+        return api.getUser(tokenValue);
       }).then(function onGet(res) {
         ok(res);
         const content = res.body.content;
-        expect(content.email).to.eql(sampleUser.email);
-        expect(content.phone).to.eql(sampleUser.phone);
-        expect(content.name).to.eql(sampleUser.username);
+        expect(content.email).to.eql(api.makeSampleUserOne().email);
+        expect(content.phone).to.eql(api.makeSampleUserOne().phone);
+        expect(content.name).to.eql(api.makeSampleUserOne().username);
       });
     }); // End it should allow getting user info.
   }); // End describe getting.

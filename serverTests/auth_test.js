@@ -1,9 +1,11 @@
 import 'source-map-support/register';
 import {expect} from 'chai';
-import {authUrl, createRequestOptions, sampleUser, copy, registerUser, validateToken, getToken} from './request_helper';
+import Api from './api';
 import {ok, unauthorized, notFound, badRequest, forbidden} from './status_helper';
-import {removeDb} from './db_helper';
+import {removeDb, BASE_URL} from './db_helper';
 import requestPromise from 'request-promise';
+
+const api = new Api(BASE_URL);
 
 function tokenIsString(res) {
   expect(res.body.content.token).to.be.a('string');
@@ -18,16 +20,16 @@ describe('Authentication', function auth() {
   describe('Registering', function describeImpl() {
     it('should allow registering', function test() {
       // Register a user and ensure we get a token for the user.
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenIsString(ok(res));
-        expect(res.body.content.name).to.eql(sampleUser.username);
+        expect(res.body.content.name).to.eql(api.makeSampleUserOne().username);
       });
     }); // End it should allow registering.
 
     it('should not allow registering twice', function test() {
-      return registerUser().then(function onFirstRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onFirstRegister(res) {
         ok(res);
-        return registerUser();
+        return api.registerUser(api.makeSampleUserOne());
       }).then(function onSecondRegister(res) {
         forbidden(res);
       });
@@ -35,9 +37,9 @@ describe('Authentication', function auth() {
 
     it('should not allow missing arguments when registering', function test() {
       function createMissingOptions(key) {
-        const copiedUser = copy(sampleUser);
+        const copiedUser = api.makeSampleUserOne();
         copiedUser[key] = undefined;
-        return createRequestOptions(authUrl, 'POST', {}, copiedUser);
+        return api.createRequestOptions(api.authUrl(), 'POST', {}, copiedUser);
       }
 
       // Remove the fields one at a time and ensure that the request fails.
@@ -63,19 +65,19 @@ describe('Authentication', function auth() {
   describe('Getting token', function impl() {
     it('should allow getting a token', function test() {
       // Create a new user.
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         // Get a token.
-        return getToken();
+        return api.getToken(api.makeSampleUserOne());
       }).then(function onToken(res) {
         tokenIsString(ok(res));
-        expect(res.body.content.name).to.eql(sampleUser.username);
+        expect(res.body.content.name).to.eql(api.makeSampleUserOne().username);
       });
     }); // End it should allow getting a token.
 
     it('should not give token for invalid user', function test() {
       // Try to get a token for a user who doesn't exist and ensure that we get a 404.
-      return getToken().then(function onRegister(res) {
+      return api.getToken(api.makeSampleUserOne()).then(function onRegister(res) {
         notFound(res);
       });
     });
@@ -84,10 +86,10 @@ describe('Authentication', function auth() {
       // Create a user and check the token. Then fetch a new token and ensure that the token value
       // is different.
       let tokenValue = null;
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenIsString(ok(res));
         tokenValue = res.body.content.token;
-        return getToken();
+        return api.getToken(api.makeSampleUserOne());
       }).then(function onToken(res) {
         tokenIsString(ok(res));
         expect(tokenValue).to.be.a('string');
@@ -97,12 +99,12 @@ describe('Authentication', function auth() {
 
     it('should eliminate old token when we get a new one', function test() {
       let tokenValue = null;
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenValue = res.body.content.token;
-        return getToken();
+        return api.getToken(api.makeSampleUserOne());
       }).then(function onToken(res) {
         expect(res.body.content.token).to.not.eql(tokenValue);
-        return validateToken(tokenValue);
+        return api.validateToken(tokenValue);
       }).then(function onValidate(res) {
         unauthorized(res);
       });
@@ -111,29 +113,29 @@ describe('Authentication', function auth() {
 
   describe('Validating token', function impl() {
     it('should validate tokens', function test() {
-      return registerUser().then(function onRegister(res) {
-        return validateToken(res.body.content.token);
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+        return api.validateToken(res.body.content.token);
       }).then(function onToken(res) {
         ok(res);
       });
     }); // End it should validate tokens.
 
     it('should not validate nonsense', function test() {
-      return validateToken('nonsense').then(function onValidate(res) {
+      return api.validateToken('nonsense').then(function onValidate(res) {
         unauthorized(res);
       });
     }); // End it should not validate nonsense.
 
     it('should not validate expired token', function test() {
       let tokenValue = null;
-      return registerUser().then(function onRegister(res) {
+      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenIsString(ok(res));
         tokenValue = res.body.content.token;
-        return getToken();
+        return api.getToken(api.makeSampleUserOne());
       }).then(function onToken(res) {
         tokenIsString(ok(res));
         expect(tokenValue).to.not.eql(res.body.content.token);
-        return validateToken(tokenValue);
+        return api.validateToken(tokenValue);
       }).then(function onValidate(res) {
         unauthorized(res);
       });

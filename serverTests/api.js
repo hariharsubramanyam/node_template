@@ -1,4 +1,5 @@
 import 'source-map-support/register';
+import requestPromise from 'request-promise';
 
 class Api {
   constructor(baseUrl) {
@@ -67,7 +68,7 @@ class Api {
     const registerUserOptions = this.createRequestOptions(this.authUrl(), 'POST', {}, user);
     return requestPromise(registerUserOptions);
   }
-  validateToken() {
+  validateToken(bearer) {
     const validateTokenOptions = this.createRequestOptions(this.authUrl(), 'GET', {}, {}, bearer);
     return requestPromise(validateTokenOptions);
   }
