@@ -1,5 +1,5 @@
 import 'source-map-support/register';
-import requestPromise from 'request-promise';
+import request from 'request';
 
 class Api {
   constructor(baseUrl) {
@@ -32,21 +32,29 @@ class Api {
     }
     return result;
   }
-  deleteUser(token) {
+  deleteUser(token, callback) {
     const deleteUserOptions = this.createRequestOptions(this.userUrl(), 'DELETE', {}, {}, token);
-    return requestPromise(deleteUserOptions);
+    request(deleteUserOptions, function onLoad(err, response) {
+      callback(err, response);
+    });
   }
-  updateUser(token, updates) {
+  updateUser(token, updates, callback) {
     const updateUserOptions = this.createRequestOptions(this.userUrl(), 'PUT', {}, updates, token);
-    return requestPromise(updateUserOptions);
+    request(updateUserOptions, function onLoad(err, response) {
+      callback(err, response);
+    });
   }
-  getUser(token) {
+  getUser(token, callback) {
     const getUserOptions = this.createRequestOptions(this.userUrl(), 'GET', {}, {}, token);
-    return requestPromise(getUserOptions);
+    request(getUserOptions, function onLoad(err, response) {
+      callback(err, response);
+    });
   }
-  sendConnectionRequest(token, email) {
+  sendConnectionRequest(token, email, callback) {
     const options = this.createRequestOptions(this.connectionUrl(), 'POST', {}, {email}, token);
-    return requestPromise(options);
+    request(options, function onLoad(err, response) {
+      callback(err, response);
+    });
   }
   makeSampleUserOne() {
     return {
@@ -64,17 +72,23 @@ class Api {
       'email': 'testuser2@test.com',
     };
   }
-  registerUser(user) {
+  registerUser(user, callback) {
     const registerUserOptions = this.createRequestOptions(this.authUrl(), 'POST', {}, user);
-    return requestPromise(registerUserOptions);
+    request(registerUserOptions, function onLoad(err, response) {
+      callback(err, response);
+    });
   }
-  validateToken(bearer) {
+  validateToken(bearer, callback) {
     const validateTokenOptions = this.createRequestOptions(this.authUrl(), 'GET', {}, {}, bearer);
-    return requestPromise(validateTokenOptions);
+    request(validateTokenOptions, function onLoad(err, response) {
+      callback(err, response);
+    });
   }
-  getToken(user) {
+  getToken(user, callback) {
     const getTokenOptions = this.createRequestOptions(this.authUrl(), 'PUT', {}, user);
-    return requestPromise(getTokenOptions);
+    request(getTokenOptions, function onLoad(err, response) {
+      callback(err, response);
+    });
   }
 }
 

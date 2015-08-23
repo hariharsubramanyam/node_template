@@ -3,8 +3,10 @@ import {removeDb, BASE_URL} from './db_helper';
 import {ok, notFound, badRequest} from './status_helper';
 import Api from './api';
 import {expect} from 'chai';
+import Promise from 'bluebird';
 
 const api = new Api(BASE_URL);
+Promise.promisifyAll(api);
 
 describe('Users', function usersTestSuite() {
   beforeEach(removeDb);
@@ -13,12 +15,12 @@ describe('Users', function usersTestSuite() {
   describe('Deleting', function impl() {
     it('should allow deleting a user who exists', function test() {
       // Register a user, delete the user, and try to login as that user - it should fail.
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
-        return api.deleteUser(res.body.content.token);
+        return api.deleteUserAsync(res.body.content.token);
       }).then(function onDelete(res) {
         ok(res);
-        return api.getToken(api.makeSampleUserOne());
+        return api.getTokenAsync(api.makeSampleUserOne());
       }).then(function onLogin(res) {
         notFound(res);
       });
@@ -34,16 +36,16 @@ describe('Users', function usersTestSuite() {
       expect(newPhone).to.not.eql(api.makeSampleUserOne().phone);
 
       let tokenValue = null;
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         tokenValue = res.body.content.token;
-        return api.updateUser(tokenValue, {
+        return api.updateUserAsync(tokenValue, {
           'phone': newPhone,
           'name': newName,
         });
       }).then(function onUpdate(res) {
         ok(res);
-        return api.getUser(tokenValue);
+        return api.getUserAsync(tokenValue);
       }).then(function onGet(res) {
         ok(res);
         expect(res.body.content.name).to.eql(newName);
@@ -55,10 +57,10 @@ describe('Users', function usersTestSuite() {
       const newPhone = 'failure';
       expect(newPhone).to.not.eql(api.makeSampleUserOne().phone);
       let tokenValue = null;
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         tokenValue = res.body.content.token;
-        return api.updateUser(tokenValue, {
+        return api.updateUserAsync(tokenValue, {
           'phone': newPhone,
         });
       }).then(function onUpdate(res) {
@@ -70,10 +72,10 @@ describe('Users', function usersTestSuite() {
   describe('Getting', function impl() {
     it('should allow getting user info', function test() {
       let tokenValue = null;
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         tokenValue = res.body.content.token;
-        return api.getUser(tokenValue);
+        return api.getUserAsync(tokenValue);
       }).then(function onGet(res) {
         ok(res);
         const content = res.body.content;

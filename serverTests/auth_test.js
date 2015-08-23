@@ -3,9 +3,11 @@ import {expect} from 'chai';
 import Api from './api';
 import {ok, unauthorized, notFound, badRequest, forbidden} from './status_helper';
 import {removeDb, BASE_URL} from './db_helper';
+import Promise from 'bluebird';
 import requestPromise from 'request-promise';
 
 const api = new Api(BASE_URL);
+Promise.promisifyAll(api);
 
 function tokenIsString(res) {
   expect(res.body.content.token).to.be.a('string');
@@ -20,16 +22,16 @@ describe('Authentication', function auth() {
   describe('Registering', function describeImpl() {
     it('should allow registering', function test() {
       // Register a user and ensure we get a token for the user.
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenIsString(ok(res));
         expect(res.body.content.name).to.eql(api.makeSampleUserOne().username);
       });
     }); // End it should allow registering.
 
     it('should not allow registering twice', function test() {
-      return api.registerUser(api.makeSampleUserOne()).then(function onFirstRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onFirstRegister(res) {
         ok(res);
-        return api.registerUser(api.makeSampleUserOne());
+        return api.registerUserAsync(api.makeSampleUserOne());
       }).then(function onSecondRegister(res) {
         forbidden(res);
       });
@@ -65,10 +67,10 @@ describe('Authentication', function auth() {
   describe('Getting token', function impl() {
     it('should allow getting a token', function test() {
       // Create a new user.
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         ok(res);
         // Get a token.
-        return api.getToken(api.makeSampleUserOne());
+        return api.getTokenAsync(api.makeSampleUserOne());
       }).then(function onToken(res) {
         tokenIsString(ok(res));
         expect(res.body.content.name).to.eql(api.makeSampleUserOne().username);
@@ -77,7 +79,7 @@ describe('Authentication', function auth() {
 
     it('should not give token for invalid user', function test() {
       // Try to get a token for a user who doesn't exist and ensure that we get a 404.
-      return api.getToken(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.getTokenAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         notFound(res);
       });
     });
@@ -86,10 +88,10 @@ describe('Authentication', function auth() {
       // Create a user and check the token. Then fetch a new token and ensure that the token value
       // is different.
       let tokenValue = null;
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenIsString(ok(res));
         tokenValue = res.body.content.token;
-        return api.getToken(api.makeSampleUserOne());
+        return api.getTokenAsync(api.makeSampleUserOne());
       }).then(function onToken(res) {
         tokenIsString(ok(res));
         expect(tokenValue).to.be.a('string');
@@ -99,12 +101,12 @@ describe('Authentication', function auth() {
 
     it('should eliminate old token when we get a new one', function test() {
       let tokenValue = null;
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenValue = res.body.content.token;
-        return api.getToken(api.makeSampleUserOne());
+        return api.getTokenAsync(api.makeSampleUserOne());
       }).then(function onToken(res) {
         expect(res.body.content.token).to.not.eql(tokenValue);
-        return api.validateToken(tokenValue);
+        return api.validateTokenAsync(tokenValue);
       }).then(function onValidate(res) {
         unauthorized(res);
       });
@@ -113,29 +115,29 @@ describe('Authentication', function auth() {
 
   describe('Validating token', function impl() {
     it('should validate tokens', function test() {
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
-        return api.validateToken(res.body.content.token);
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
+        return api.validateTokenAsync(res.body.content.token);
       }).then(function onToken(res) {
         ok(res);
       });
     }); // End it should validate tokens.
 
     it('should not validate nonsense', function test() {
-      return api.validateToken('nonsense').then(function onValidate(res) {
+      return api.validateTokenAsync('nonsense').then(function onValidate(res) {
         unauthorized(res);
       });
     }); // End it should not validate nonsense.
 
     it('should not validate expired token', function test() {
       let tokenValue = null;
-      return api.registerUser(api.makeSampleUserOne()).then(function onRegister(res) {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
         tokenIsString(ok(res));
         tokenValue = res.body.content.token;
-        return api.getToken(api.makeSampleUserOne());
+        return api.getTokenAsync(api.makeSampleUserOne());
       }).then(function onToken(res) {
         tokenIsString(ok(res));
         expect(tokenValue).to.not.eql(res.body.content.token);
-        return api.validateToken(tokenValue);
+        return api.validateTokenAsync(tokenValue);
       }).then(function onValidate(res) {
         unauthorized(res);
       });
