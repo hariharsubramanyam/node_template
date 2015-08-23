@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import HttpStatus from 'http-status-codes';
 
 export function ok(res) {
   expect(res.statusCode).to.eql(HttpStatus.OK);

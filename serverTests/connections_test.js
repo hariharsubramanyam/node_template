@@ -1,6 +1,7 @@
 import 'source-map-support/register';
 import {removeDb} from './db_helper';
-import {sendConnectionRequest, registerUser, registerUser2, ok, sampleUser, sampleUser2, notFound, badRequest, forbidden} from './request_helper';
+import {ok, notFound, badRequest, forbidden} from './expect_helper';
+import {sendConnectionRequest, registerUser, registerUser2, sampleUser, sampleUser2} from './request_helper';
 import {expect} from 'chai';
 
 describe('Connections', function connectionsTestSuite() {

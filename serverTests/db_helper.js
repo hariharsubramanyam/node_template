@@ -3,6 +3,7 @@ import {MongoClient} from 'mongodb';
 
 
 const MONGO_TEST_URL = 'mongodb://localhost/urban_safe_test';
+export const BASE_URL = 'http://localhost:3000/api/v1/';
 
 const USER_COLLECTION = 'users';
 const USER_NAME = 'name';

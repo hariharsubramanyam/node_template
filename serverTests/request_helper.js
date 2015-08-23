@@ -1,7 +1,5 @@
 import 'source-map-support/register';
-import HttpStatus from 'http-status-codes';
 import requestPromise from 'request-promise';
-import {expect} from 'chai';
 
 const BASE_URL = 'http://localhost:3000/api/v1/';
 export const authUrl = BASE_URL + 'auth/token/';
@@ -87,36 +85,4 @@ export function validateToken(bearer) {
 export function getToken() {
   const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
   return requestPromise(getTokenOptions);
-}
-
-export function ok(res) {
-  expect(res.statusCode).to.eql(HttpStatus.OK);
-  return res;
-}
-
-export function unauthorized(res) {
-  expect(res.statusCode).to.eql(HttpStatus.UNAUTHORIZED);
-  return res;
-}
-
-export function notFound(res) {
-  expect(res.statusCode).to.eql(HttpStatus.NOT_FOUND);
-  return res;
-}
-
-export function badRequest(res) {
-  expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
-  return res;
-}
-
-export function forbidden(res) {
-  expect(res.statusCode).to.eql(HttpStatus.FORBIDDEN);
-  return res;
-}
-
-export function tokenIsString(res) {
-  expect(res.body.content.token).to.be.a('string');
-  expect(res.body.content.token.length).to.be.above(0);
-
-  return res;
 }

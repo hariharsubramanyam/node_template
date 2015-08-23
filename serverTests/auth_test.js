@@ -1,6 +1,7 @@
 import 'source-map-support/register';
 import {expect} from 'chai';
-import {authUrl, createRequestOptions, sampleUser, copy, registerUser, validateToken, getToken, ok, unauthorized, notFound, badRequest, forbidden, tokenIsString} from './request_helper';
+import {authUrl, createRequestOptions, sampleUser, copy, registerUser, validateToken, getToken} from './request_helper';
+import {ok, unauthorized, notFound, badRequest, forbidden, tokenIsString} from './expect_helper';
 import {removeDb} from './db_helper';
 import requestPromise from 'request-promise';
 
