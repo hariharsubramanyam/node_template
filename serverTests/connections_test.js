@@ -2,7 +2,7 @@ import 'source-map-support/register';
 import {BASE_URL, createRequestOptions} from './request_helper';
 import {removeDb} from './db_helper';
 import requestPromise from 'request-promise';
-import {registerUser, registerUser2, ok, sampleUser2} from './auth_test';
+import {registerUser, registerUser2, ok, sampleUser2, notFound} from './auth_test';
 
 const connectionUrl = BASE_URL + 'connections/';
 
@@ -18,17 +18,26 @@ describe('Connections', function connectionsTestSuite() {
   describe('Creating', function impl() {
     it('should allow creating a connection request', function test() {
       // Create two users and send a connection request from the first to the second.
-      let token1 = null;
+      let token = null;
       return registerUser().then(function onFirstRegister(res) {
         ok(res);
-        token1 = res.body.content.token;
+        token = res.body.content.token;
         return registerUser2();
       }).then(function onSecondRegister(res) {
         ok(res);
-        return sendConnectionRequest(token1, sampleUser2.email);
+        return sendConnectionRequest(token, sampleUser2.email);
       }).then(function onConnectionRequest(res) {
         ok(res);
       });
     }); // End it should allow creating a connection request.
+
+    it('should not allow sending to a user who does not exist', function test() {
+      return registerUser().then(function onFirstRegister(res) {
+        ok(res);
+        return sendConnectionRequest(res.body.content.token, 'fakemail@notreal.com');
+      }).then(function onConnectionRequest(res) {
+        notFound(res);
+      });
+    }); // End it should not allow sending to a user who does not exist.
   }); // End describe creating.
 });
