@@ -170,5 +170,19 @@ describe('Connections', function connectionsTestSuite() {
         statusHelper.ok(res);
       });
     }); // it should not allow sender to accept connection request.
+
+    it('should give an error when accepting a non-existent connection request', function test() {
+      let token = null;
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onFirstRegister(res) {
+        statusHelper.ok(res);
+        token = res.body.content.token;
+        return api.acceptConnectionRequestAsync(token, 'nonsense');
+      }).then(function onAccept(res) {
+        statusHelper.badRequest(res);
+        return api.acceptConnectionRequestAsync(token, '55da5c24bc4423e5754b7821');
+      }).then(function onSecondAccept(res) {
+        statusHelper.notFound(res);
+      });
+    }); // It should give an error when accepting a non-existent connection request.
   }); // End describe accepting.
 });

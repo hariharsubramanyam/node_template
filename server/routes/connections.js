@@ -159,8 +159,14 @@ router.put('/connections/:id',
     passport.authenticate('bearer', {'session': false}),
     function acceptConnection(req, res) {
       checkParamsAsync(['id'], req, res).then(function onParams(params) {
-        const connectionId = new mongoose.Types.ObjectId(params.get('id'));
-        return Connection.findOneAsync({'_id': connectionId});
+        try {
+          const connectionId = new mongoose.Types.ObjectId(params.get('id'));
+          return Connection.findOneAsync({'_id': connectionId});
+        } catch(e) {
+          const err = new Error('Not a valid id');
+          err.statusCode = HttpStatus.BAD_REQUEST;
+          return Promise.reject(err);
+        }
       }).then(function onFound(connection) {
         if (!connection) {
           const err = new Error('Connection with given id not found');
