@@ -1,85 +1,8 @@
 import 'source-map-support/register';
 import {expect} from 'chai';
-import {BASE_URL, createRequestOptions} from './request_helper';
-import HttpStatus from 'http-status-codes';
+import {authUrl, createRequestOptions, sampleUser, copy, registerUser, validateToken, getToken, ok, unauthorized, notFound, badRequest, forbidden, tokenIsString} from './request_helper';
 import {removeDb} from './db_helper';
 import requestPromise from 'request-promise';
-
-const authUrl = BASE_URL + 'auth/token/';
-
-export const sampleUser = {
-  'username': 'testuser',
-  'password': 'testpassword',
-  'phone': '1112223333',
-  'email': 'testuser@test.com',
-};
-
-export const sampleUser2 = {
-  'username': 'testusertwo',
-  'password': 'testpassword2',
-  'phone': '1112223344',
-  'email': 'testuser2@test.com',
-};
-
-export function copy(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-
-function registerUserHelper(user) {
-  const registerUserOptions = createRequestOptions(authUrl, 'POST', {}, user);
-  return requestPromise(registerUserOptions);
-}
-
-export function registerUser() {
-  return registerUserHelper(sampleUser);
-}
-
-export function registerUser2() {
-  return registerUserHelper(sampleUser2);
-}
-
-export function validateToken(bearer) {
-  const validateTokenOptions = createRequestOptions(authUrl, 'GET', {}, {}, bearer);
-  return requestPromise(validateTokenOptions);
-}
-
-export function getToken() {
-  const getTokenOptions = createRequestOptions(authUrl, 'PUT', {}, sampleUser);
-  return requestPromise(getTokenOptions);
-}
-
-export function ok(res) {
-  expect(res.statusCode).to.eql(HttpStatus.OK);
-  return res;
-}
-
-export function unauthorized(res) {
-  expect(res.statusCode).to.eql(HttpStatus.UNAUTHORIZED);
-  return res;
-}
-
-export function notFound(res) {
-  expect(res.statusCode).to.eql(HttpStatus.NOT_FOUND);
-  return res;
-}
-
-export function badRequest(res) {
-  expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
-  return res;
-}
-
-export function forbidden(res) {
-  expect(res.statusCode).to.eql(HttpStatus.FORBIDDEN);
-  return res;
-}
-
-export function tokenIsString(res) {
-  expect(res.body.content.token).to.be.a('string');
-  expect(res.body.content.token.length).to.be.above(0);
-
-  return res;
-}
 
 describe('Authentication', function auth() {
   beforeEach(removeDb);

@@ -1,26 +1,8 @@
 import 'source-map-support/register';
-import {BASE_URL, createRequestOptions} from './request_helper';
 import {removeDb} from './db_helper';
-import requestPromise from 'request-promise';
-import {registerUser, ok, getToken, notFound, sampleUser, badRequest} from './auth_test';
+import {deleteUser, updateUser, getUser, registerUser, ok, getToken, notFound, sampleUser, badRequest} from './request_helper';
 import {expect} from 'chai';
 
-const userUrl = BASE_URL + 'users/me/';
-
-function deleteUser(token) {
-  const deleteUserOptions = createRequestOptions(userUrl, 'DELETE', {}, {}, token);
-  return requestPromise(deleteUserOptions);
-}
-
-function updateUser(token, updates) {
-  const updateUserOptions = createRequestOptions(userUrl, 'PUT', {}, updates, token);
-  return requestPromise(updateUserOptions);
-}
-
-function getUser(token) {
-  const getUserOptions = createRequestOptions(userUrl, 'GET', {}, {}, token);
-  return requestPromise(getUserOptions);
-}
 
 describe('Users', function usersTestSuite() {
   beforeEach(removeDb);

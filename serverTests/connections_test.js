@@ -1,16 +1,7 @@
 import 'source-map-support/register';
-import {BASE_URL, createRequestOptions} from './request_helper';
 import {removeDb} from './db_helper';
-import requestPromise from 'request-promise';
-import {registerUser, registerUser2, ok, sampleUser, sampleUser2, notFound, badRequest, forbidden} from './auth_test';
+import {sendConnectionRequest, registerUser, registerUser2, ok, sampleUser, sampleUser2, notFound, badRequest, forbidden} from './request_helper';
 import {expect} from 'chai';
-
-const connectionUrl = BASE_URL + 'connections/';
-
-function sendConnectionRequest(token, email) {
-  const options = createRequestOptions(connectionUrl, 'POST', {}, {email}, token);
-  return requestPromise(options);
-}
 
 describe('Connections', function connectionsTestSuite() {
   beforeEach(removeDb);
