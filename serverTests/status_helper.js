@@ -1,27 +1,35 @@
 import {expect} from 'chai';
 import HttpStatus from 'http-status-codes';
 
-export function ok(res) {
+function ok(res) {
   expect(res.statusCode).to.eql(HttpStatus.OK);
   return res;
 }
 
-export function unauthorized(res) {
+function unauthorized(res) {
   expect(res.statusCode).to.eql(HttpStatus.UNAUTHORIZED);
   return res;
 }
 
-export function notFound(res) {
+function notFound(res) {
   expect(res.statusCode).to.eql(HttpStatus.NOT_FOUND);
   return res;
 }
 
-export function badRequest(res) {
+function badRequest(res) {
   expect(res.statusCode).to.eql(HttpStatus.BAD_REQUEST);
   return res;
 }
 
-export function forbidden(res) {
+function forbidden(res) {
   expect(res.statusCode).to.eql(HttpStatus.FORBIDDEN);
   return res;
 }
+
+export default {
+  ok,
+  unauthorized,
+  notFound,
+  badRequest,
+  forbidden,
+};

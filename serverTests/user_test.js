@@ -1,6 +1,6 @@
 import 'source-map-support/register';
 import {removeDb, BASE_URL} from './db_helper';
-import {ok, notFound, badRequest} from './status_helper';
+import statusHelper from './status_helper';
 import Api from './api';
 import {expect} from 'chai';
 import Promise from 'bluebird';
@@ -16,13 +16,13 @@ describe('Users', function usersTestSuite() {
     it('should allow deleting a user who exists', function test() {
       // Register a user, delete the user, and try to login as that user - it should fail.
       return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
-        ok(res);
+        statusHelper.ok(res);
         return api.deleteUserAsync(res.body.content.token);
       }).then(function onDelete(res) {
-        ok(res);
+        statusHelper.ok(res);
         return api.getTokenAsync(api.makeSampleUserOne());
       }).then(function onLogin(res) {
-        notFound(res);
+        statusHelper.notFound(res);
       });
     }); // End it should allow deleting a user who exists.
   }); // End describe deleting.
@@ -37,17 +37,17 @@ describe('Users', function usersTestSuite() {
 
       let tokenValue = null;
       return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
-        ok(res);
+        statusHelper.ok(res);
         tokenValue = res.body.content.token;
         return api.updateUserAsync(tokenValue, {
           'phone': newPhone,
           'name': newName,
         });
       }).then(function onUpdate(res) {
-        ok(res);
+        statusHelper.ok(res);
         return api.getUserAsync(tokenValue);
       }).then(function onGet(res) {
-        ok(res);
+        statusHelper.ok(res);
         expect(res.body.content.name).to.eql(newName);
         expect(res.body.content.phone).to.eql(newPhone);
       });
@@ -58,13 +58,13 @@ describe('Users', function usersTestSuite() {
       expect(newPhone).to.not.eql(api.makeSampleUserOne().phone);
       let tokenValue = null;
       return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
-        ok(res);
+        statusHelper.ok(res);
         tokenValue = res.body.content.token;
         return api.updateUserAsync(tokenValue, {
           'phone': newPhone,
         });
       }).then(function onUpdate(res) {
-        badRequest(res);
+        statusHelper.badRequest(res);
       });
     });
   }); // End describe updating.
@@ -73,11 +73,11 @@ describe('Users', function usersTestSuite() {
     it('should allow getting user info', function test() {
       let tokenValue = null;
       return api.registerUserAsync(api.makeSampleUserOne()).then(function onRegister(res) {
-        ok(res);
+        statusHelper.ok(res);
         tokenValue = res.body.content.token;
         return api.getUserAsync(tokenValue);
       }).then(function onGet(res) {
-        ok(res);
+        statusHelper.ok(res);
         const content = res.body.content;
         expect(content.email).to.eql(api.makeSampleUserOne().email);
         expect(content.phone).to.eql(api.makeSampleUserOne().phone);
