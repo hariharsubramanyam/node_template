@@ -88,5 +88,15 @@ describe('Connections', function connectionsTestSuite() {
         expect(content[0].accepted).to.be.false;
       });
     }); // End it should allow getting connections.
+
+    it('should return no connection requests when there are none', function test() {
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onFirstRegister(res) {
+        statusHelper.ok(res);
+        return api.getConnectionsAsync(res.body.content.token);
+      }).then(function onGotConnections(res) {
+        statusHelper.ok(res);
+        expect(res.body.content.length).to.eql(0);
+      });
+    }); // End it should return no connection requests when there are none.
   }); // End describe getting.
 });
