@@ -2,7 +2,7 @@ import 'source-map-support/register';
 import {BASE_URL, createRequestOptions} from './request_helper';
 import {removeDb} from './db_helper';
 import requestPromise from 'request-promise';
-import {registerUser, registerUser2, ok, sampleUser2, notFound} from './auth_test';
+import {registerUser, registerUser2, ok, sampleUser, sampleUser2, notFound, badRequest} from './auth_test';
 
 const connectionUrl = BASE_URL + 'connections/';
 
@@ -39,5 +39,14 @@ describe('Connections', function connectionsTestSuite() {
         notFound(res);
       });
     }); // End it should not allow sending to a user who does not exist.
+
+    it('should not allow sending to self', function test() {
+      return registerUser().then(function onFirstRegister(res) {
+        ok(res);
+        return sendConnectionRequest(res.body.content.token, sampleUser.email);
+      }).then(function onConnectionRequest(res) {
+        badRequest(res);
+      });
+    }); // End it should not allow sending to self.
   }); // End describe creating.
 });
