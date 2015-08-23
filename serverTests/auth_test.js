@@ -69,6 +69,11 @@ export function badRequest(res) {
   return res;
 }
 
+export function forbidden(res) {
+  expect(res.statusCode).to.eql(HttpStatus.FORBIDDEN);
+  return res;
+}
+
 export function tokenIsString(res) {
   expect(res.body.content.token).to.be.a('string');
   expect(res.body.content.token.length).to.be.above(0);
@@ -94,7 +99,7 @@ describe('Authentication', function auth() {
         ok(res);
         return registerUser();
       }).then(function onSecondRegister(res) {
-        expect(res.statusCode).to.eql(HttpStatus.FORBIDDEN);
+        forbidden(res);
       });
     }); // End it should not allow registering twice.
 

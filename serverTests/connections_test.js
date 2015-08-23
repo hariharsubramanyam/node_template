@@ -2,7 +2,7 @@ import 'source-map-support/register';
 import {BASE_URL, createRequestOptions} from './request_helper';
 import {removeDb} from './db_helper';
 import requestPromise from 'request-promise';
-import {registerUser, registerUser2, ok, sampleUser, sampleUser2, notFound, badRequest} from './auth_test';
+import {registerUser, registerUser2, ok, sampleUser, sampleUser2, notFound, badRequest, forbidden} from './auth_test';
 import {expect} from 'chai';
 
 const connectionUrl = BASE_URL + 'connections/';
@@ -51,5 +51,22 @@ describe('Connections', function connectionsTestSuite() {
         badRequest(res);
       });
     }); // End it should not allow sending to self.
+
+    it('should not allow sending duplicate connection request', function test() {
+      let token = null;
+      return registerUser().then(function onFirstRegister(res) {
+        ok(res);
+        token = res.body.content.token;
+        return registerUser2();
+      }).then(function onSecondRegister(res) {
+        ok(res);
+        return sendConnectionRequest(token, sampleUser2.email);
+      }).then(function onConnectionRequest(res) {
+        ok(res);
+        return sendConnectionRequest(token, sampleUser2.email);
+      }).then(function onSecondConnectionRequest(res) {
+        forbidden(res);
+      });
+    });
   }); // End describe creating.
 });
