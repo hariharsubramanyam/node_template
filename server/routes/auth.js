@@ -10,11 +10,11 @@ import User from '../models/user';
 import Promise from 'bluebird';
 import bcrypt from 'bcrypt';
 import {SALT} from '../config/secrets';
-import {checkParams} from './route_utils';
+import {checkBody} from './route_utils';
 
 Promise.promisifyAll(User);
 Promise.promisifyAll(bcrypt);
-const checkParamsAsync = Promise.promisify(checkParams);
+const checkBodyAsync = Promise.promisify(checkBody);
 
 // This causes a lint error because only constructors are allowed to have positive letters.
 /*eslint-disable*/
@@ -68,7 +68,7 @@ router.get('/token',
 // If successful, the result will contain the 'token' and the 'username'.
 router.post('/token', function registerUser(req, res) {
   // Ensure that the parameters exist and search for the user.
-  checkParamsAsync(['username', 'phone', 'email', 'password'], req, res).then(function onValid() {
+  checkBodyAsync(['username', 'phone', 'email', 'password'], req, res).then(function onValid() {
     return User.findOneAsync({'name': req.body.username});
   }).then(function foundUser(user) {
     // Ensure the user exists and generate a salt.

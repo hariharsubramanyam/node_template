@@ -8,12 +8,12 @@ import Connection from '../models/connection';
 import Promise from 'bluebird';
 import express from 'express';
 import {sendSuccessResponse, sendFailureResponse} from './route_utils';
-import {checkParams} from './route_utils';
+import {checkBody} from './route_utils';
 
 
 Promise.promisifyAll(User);
 Promise.promisifyAll(Connection);
-const checkParamsAsync = Promise.promisify(checkParams);
+const checkBodyAsync = Promise.promisify(checkBody);
 
 // This causes a lint error because only constructors are allowed to have positive letters.
 /*eslint-disable*/
@@ -106,7 +106,7 @@ router.get('/connections',
 router.post('/connections',
     passport.authenticate('bearer', {'session': false}),
     function makeConnection(req, res) {
-      const userPromise = checkParamsAsync(['email'], req, res).then(function onValid() {
+      const userPromise = checkBodyAsync(['email'], req, res).then(function onValid() {
         if (req.user.email === req.body.email) {
           const err = new Error('You cannot send a connection request to yourself');
           err.statusCode = HttpStatus.BAD_REQUEST;

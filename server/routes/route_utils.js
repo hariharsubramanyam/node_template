@@ -3,17 +3,15 @@
 import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
 
-// Check that the values in 'names' (an array of strings) appear in the request body. If they all
-// appear, extract them and return them in a map with key=param name and value=param value.
-export function checkParams(names, req, res, callback) {
+function checkHelper(key, names, req, res, callback) {
   const params = new Map();
   let missingArg = null;
   for (const name of names) {
-    if (req.body[name] === undefined) {
+    if (req[key][name] === undefined) {
       missingArg = name;
       break;
     } else {
-      params.set(name, req.body[name]);
+      params.set(name, req[key][name]);
     }
   }
   if (missingArg !== null) {
@@ -23,6 +21,18 @@ export function checkParams(names, req, res, callback) {
   } else {
     callback(null, params);
   }
+}
+
+// Check that the values in 'names' (an array of strings) appear in the request body. If they all
+// appear, extract them and return them in a map with key=param name and value=param value.
+export function checkBody(names, req, res, callback) {
+  checkHelper('body', names, req, res, callback);
+}
+
+// Check that the values in 'names' (an array of strings) appear in the request URL. If they all
+// appear, extract them and return them in a map with key=param name and value=param value.
+export function checkParams(names, req, res, callback) {
+  checkHelper('params', names, req, res, callback);
 }
 
 // Send a JSON response indicating a successful operation.
