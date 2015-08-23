@@ -138,5 +138,37 @@ describe('Connections', function connectionsTestSuite() {
         expect(conns[0].accepted).to.be.true;
       });
     }); // End it should allow accepting connection requests.
+
+    it('should not allow non-recipient to accept connection request', function test() {
+      let tokenOne = null;
+      let tokenTwo = null;
+      let tokenThree = null;
+      let requestId = null;
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onFirstRegister(res) {
+        statusHelper.ok(res);
+        tokenOne = res.body.content.token;
+        return api.registerUserAsync(api.makeSampleUserTwo());
+      }).then(function onSecondRegister(res) {
+        statusHelper.ok(res);
+        tokenTwo = res.body.content.token;
+        return api.registerUserAsync(api.makeSampleUserThree());
+      }).then(function onThirdUser(res) {
+        statusHelper.ok(res);
+        tokenThree = res.body.content.token;
+        return api.sendConnectionRequestAsync(tokenOne, api.makeSampleUserTwo().email);
+      }).then(function onConnectionRequest(res) {
+        statusHelper.ok(res);
+        requestId = res.body.content.id;
+        return api.acceptConnectionRequestAsync(tokenOne, requestId);
+      }).then(function onFirstAccept(res) {
+        statusHelper.forbidden(res);
+        return api.acceptConnectionRequestAsync(tokenThree, requestId);
+      }).then(function onSecondAccept(res) {
+        statusHelper.forbidden(res);
+        return api.acceptConnectionRequestAsync(tokenTwo, requestId);
+      }).then(function onThirdAccept(res) {
+        statusHelper.ok(res);
+      });
+    }); // it should not allow sender to accept connection request.
   }); // End describe accepting.
 });

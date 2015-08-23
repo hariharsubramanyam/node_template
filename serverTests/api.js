@@ -71,6 +71,14 @@ class Api {
       'email': 'testuser2@test.com',
     };
   }
+  makeSampleUserThree() {
+    return {
+      'username': 'testuserthree',
+      'password': 'testpassword3',
+      'phone': '3332221111',
+      'email': 'testuser3@test.com',
+    };
+  }
   registerUser(user, callback) {
     const options = this.createRequestOptions(this.authUrl(), 'POST', {}, user);
     requestHelper(options, callback);
