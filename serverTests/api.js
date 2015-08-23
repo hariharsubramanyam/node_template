@@ -83,6 +83,10 @@ class Api {
     const options = this.createRequestOptions(this.authUrl(), 'PUT', {}, user);
     requestHelper(options, callback);
   }
+  getConnections(bearer, callback) {
+    const options = this.createRequestOptions(this.connectionUrl(), 'GET', {}, {}, bearer);
+    requestHelper(options, callback);
+  }
 }
 
 export default Api;

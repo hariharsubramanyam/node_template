@@ -65,4 +65,28 @@ describe('Connections', function connectionsTestSuite() {
       });
     });
   }); // End describe creating.
+
+  describe('Getting', function impl() {
+    it('should allow getting connections', function test() {
+      let token = null;
+      return api.registerUserAsync(api.makeSampleUserOne()).then(function onFirstRegister(res) {
+        statusHelper.ok(res);
+        token = res.body.content.token;
+        return api.registerUserAsync(api.makeSampleUserTwo());
+      }).then(function onSecondRegister(res) {
+        statusHelper.ok(res);
+        return api.sendConnectionRequestAsync(token, api.makeSampleUserTwo().email);
+      }).then(function onConnectionRequest(res) {
+        statusHelper.ok(res);
+        return api.getConnectionsAsync(token);
+      }).then(function onGotConnections(res) {
+        statusHelper.ok(res);
+        const content = res.body.content;
+        expect(content.length).to.eql(1);
+        expect(content[0].sender).to.eql(api.makeSampleUserOne().email);
+        expect(content[0].recipient).to.eql(api.makeSampleUserTwo().email);
+        expect(content[0].accepted).to.be.false;
+      });
+    }); // End it should allow getting connections.
+  }); // End describe getting.
 });

@@ -53,8 +53,50 @@ router.get('/connections',
           {'recipient': req.user._id},
         ],
       };
-      Connection.findAsync(filterCondition).then(function onFound(connections) {
-        sendSuccessResponse(res, 'success', connections);
+      const connectionPromise = Connection.findAsync(filterCondition);
+      const arrayPromise = connectionPromise.then(function onFoundConnections(connections) {
+        const others = connections.map(function pickOther(connection) {
+          if (connection.sender.equals(req.user._id)) {
+            return connection.recipient;
+          }
+          return connection.sender;
+        });
+        // TODO(hsubrama): If the number of connections is large, this could be a problem. Fixing
+        // this would either require:
+        // 1. Redesiging the schema so that the user's connections are within the same document.
+        // 2. Limiting the number of connections that a user can have.
+        //
+        // Option 2 is preferable because option 1 requires much more work and also requires
+        // multi-document edits (add A to B's connection list, add B to A's connection list),
+        // which cannot be done atomically.
+        return User.findAsync({'_id': {
+          '$in': others,
+        }});
+      });
+
+      Promise.join(connectionPromise, arrayPromise, function bothPromises(connections, users) {
+        const userForId = new Map();
+        users.forEach(function addToMap(user) {
+          userForId.set(user._id.toString(), user);
+        });
+
+        const returnedConnections = connections.map(function makeReturnValue(connection) {
+          let sender;
+          let recipient;
+          if (connection.sender.equals(req.user._id)) {
+            recipient = userForId.get(connection.recipient.toString()).email;
+            sender = req.user.email;
+          } else {
+            sender = userForId.get(connection.sender.toString()).email;
+            recipient = req.user.email;
+          }
+          return {
+            sender,
+            recipient,
+            'accepted': connection.accepted,
+          };
+        });
+        sendSuccessResponse(res, 'Connections and connection requests', returnedConnections);
       }).catch(function onError(err) {
         sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
       });
