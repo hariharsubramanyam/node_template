@@ -3,6 +3,7 @@ import {BASE_URL, createRequestOptions} from './request_helper';
 import {removeDb} from './db_helper';
 import requestPromise from 'request-promise';
 import {registerUser, registerUser2, ok, sampleUser, sampleUser2, notFound, badRequest} from './auth_test';
+import {expect} from 'chai';
 
 const connectionUrl = BASE_URL + 'connections/';
 
@@ -28,6 +29,8 @@ describe('Connections', function connectionsTestSuite() {
         return sendConnectionRequest(token, sampleUser2.email);
       }).then(function onConnectionRequest(res) {
         ok(res);
+        expect(res.body.content.sender).to.eql(sampleUser.email);
+        expect(res.body.content.recipient).to.eql(sampleUser2.email);
       });
     }); // End it should allow creating a connection request.
 

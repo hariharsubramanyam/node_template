@@ -99,8 +99,8 @@ router.post('/connections',
           return Promise.reject(new Error('Could not save connection'));
         }
         sendSuccessResponse(res, 'Created connection request', {
-          'sender': connections[0].sender,
-          'recipient': connections[0].recipient,
+          'sender': req.user.email,
+          'recipient': req.body.email,
         });
       }).catch(function onError(err) {
         sendFailureResponse(res, err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR, err);
