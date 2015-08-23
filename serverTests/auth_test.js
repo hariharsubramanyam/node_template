@@ -1,9 +1,15 @@
 import 'source-map-support/register';
 import {expect} from 'chai';
 import {authUrl, createRequestOptions, sampleUser, copy, registerUser, validateToken, getToken} from './request_helper';
-import {ok, unauthorized, notFound, badRequest, forbidden, tokenIsString} from './expect_helper';
+import {ok, unauthorized, notFound, badRequest, forbidden} from './status_helper';
 import {removeDb} from './db_helper';
 import requestPromise from 'request-promise';
+
+function tokenIsString(res) {
+  expect(res.body.content.token).to.be.a('string');
+  expect(res.body.content.token.length).to.be.above(0);
+  return res;
+}
 
 describe('Authentication', function auth() {
   beforeEach(removeDb);

@@ -1,6 +1,6 @@
 import 'source-map-support/register';
 import {removeDb} from './db_helper';
-import {ok, notFound, badRequest, forbidden} from './expect_helper';
+import {ok, notFound, badRequest, forbidden} from './status_helper';
 import {sendConnectionRequest, registerUser, registerUser2, sampleUser, sampleUser2} from './request_helper';
 import {expect} from 'chai';
 

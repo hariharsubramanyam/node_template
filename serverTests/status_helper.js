@@ -25,10 +25,3 @@ export function forbidden(res) {
   expect(res.statusCode).to.eql(HttpStatus.FORBIDDEN);
   return res;
 }
-
-export function tokenIsString(res) {
-  expect(res.body.content.token).to.be.a('string');
-  expect(res.body.content.token.length).to.be.above(0);
-
-  return res;
-}
