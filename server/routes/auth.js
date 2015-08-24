@@ -5,7 +5,7 @@ import express from 'express';
 import HttpStatus from 'http-status-codes';
 import passport from  '../config/passport';
 import {createToken} from '../config/token_helper';
-import {sendSuccessResponse, sendFailureResponse} from './route_utils';
+import {sendSuccessResponse, sendFailureResponse, makeErr} from './route_utils';
 import User from '../models/user';
 import Promise from 'bluebird';
 import bcrypt from 'bcrypt';
@@ -28,18 +28,14 @@ router.put('/token',
     function tokenCallback(req, res) {
       User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
         if (!user) {
-          const err = new Error('Could not find user');
-          err.statusCode = HttpStatus.FORBIDDEN;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(HttpStatus.NOT_FOUND, 'Could not find user'));
         }
         user.token = createToken(user);
         Promise.promisifyAll(user);
         return user.saveAsync();
       }).then(function onSave(users) {
         if (users.length !== 2 || users[1] !== 1) {
-          const err = new Error('Could not save user');
-          err.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(HttpStatus.INTERNAL_SERVER_ERROR, 'Could not save user'));
         }
         sendSuccessResponse(res, 'Successfully obtained token', {
           'token': users[0].token,
@@ -73,9 +69,7 @@ router.post('/token', function registerUser(req, res) {
   }).then(function foundUser(user) {
     // Ensure the user exists and generate a salt.
     if (user) {
-      const err = new Error('Username already exists');
-      err.statusCode = HttpStatus.FORBIDDEN;
-      return Promise.reject(err);
+      return Promise.reject(makeErr(HttpStatus.FORBIDDEN, 'Username already exists'));
     }
     return bcrypt.genSaltAsync(SALT);
   }).then(function gotSalt(salt) {
@@ -94,9 +88,7 @@ router.post('/token', function registerUser(req, res) {
     return user.saveAsync();
   }).then(function onUserSave(users) {
     if (users.length !== 2 || users[1] !== 1) {
-      const err = new Error('Could not save user');
-      err.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      return Promise.reject(err);
+      return Promise.reject(makeErr(HttpStatus.INTERNAL_SERVER_ERROR, 'Could not save user'));
     }
     sendSuccessResponse(res, 'Successfully registered', {
       'token': users[0].token,

@@ -8,7 +8,7 @@ import User from '../models/user';
 import Connection from '../models/connection';
 import Promise from 'bluebird';
 import express from 'express';
-import {sendSuccessResponse, sendFailureResponse} from './route_utils';
+import {sendSuccessResponse, sendFailureResponse, makeErr} from './route_utils';
 import {checkBody, checkParams} from './route_utils';
 
 
@@ -111,27 +111,27 @@ router.post('/connections',
     function makeConnection(req, res) {
       const userPromise = checkBodyAsync(['email'], req, res).then(function onValid() {
         if (req.user.email === req.body.email) {
-          const err = new Error('You cannot send a connection request to yourself');
-          err.statusCode = HttpStatus.BAD_REQUEST;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(
+                HttpStatus.BAD_REQUEST,
+                'You cannot send a connection request to yourself'));
         }
         return User.findOneAsync({'email': req.body.email});
       });
 
       const connectionPromise = userPromise.then(function onFoundUser(user) {
         if (!user) {
-          const err = new Error('Cannot send connection request because recipient does not exist');
-          err.statusCode = HttpStatus.NOT_FOUND;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(
+                HttpStatus.NOT_FOUND,
+                'Cannot send connection request because recipient does not exist'));
         }
         return isConnectionBetween(user._id, req.user._id);
       });
 
       Promise.join(userPromise, connectionPromise, function onPromises(user, connection) {
         if (connection) {
-          const err = new Error('There is already a connection or connection request');
-          err.statusCode = HttpStatus.FORBIDDEN;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(
+                HttpStatus.FORBIDDEN,
+                'There is already a connection or connection request'));
         }
         const connectionRequest = new Connection();
         connectionRequest.sender = req.user._id;
@@ -141,7 +141,9 @@ router.post('/connections',
         return connectionRequest.saveAsync();
       }).then(function onSave(connections) {
         if (connections.length !== 2 || connections[1] !== 1) {
-          return Promise.reject(new Error('Could not save connection'));
+          return Promise.reject(makeErr(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                'Could not save connection'));
         }
         sendSuccessResponse(res, 'Created connection request', {
           'id': connections[0]._id.toString(),
@@ -163,29 +165,27 @@ router.put('/connections/:id',
           const connectionId = new mongoose.Types.ObjectId(params.get('id'));
           return Connection.findOneAsync({'_id': connectionId});
         } catch(e) {
-          const err = new Error('Not a valid id');
-          err.statusCode = HttpStatus.BAD_REQUEST;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(HttpStatus.BAD_REQUEST, 'Not a valid id'));
         }
       }).then(function onFound(connection) {
         if (!connection) {
-          const err = new Error('Connection with given id not found');
-          err.statusCode = HttpStatus.NOT_FOUND;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(
+                HttpStatus.NOT_FOUND,
+                'Connection with given id not found'));
         }
         if (!connection.recipient.equals(req.user._id)) {
-          const err = new Error('You cannot change a connection request you did not receive');
-          err.statusCode = HttpStatus.FORBIDDEN;
-          return Promise.reject(err);
+          return Promise.reject(makeErr(
+                HttpStatus.FORBIDDEN,
+                'You cannot change a connection request you did not receive'));
         }
         connection.accepted = true;
         Promise.promisifyAll(connection);
         return connection.saveAsync();
       }).then(function onSave(connections) {
         if (connections.length !== 2 || connections[1] !== 1) {
-          const err = new Error('Could not save connection');
-          err.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-          return Promise.reject(err);
+          return Promise.reject(
+              makeErr(HttpStatus.INTERNAL_SERVER_ERROR,
+                'Could not save connection'));
         }
         sendSuccessResponse(res, 'Accepted connection request', {});
       }).catch(function onError(err) {

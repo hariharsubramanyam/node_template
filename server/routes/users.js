@@ -4,7 +4,7 @@ import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
 import express from 'express';
 import passport from  '../config/passport';
-import {sendSuccessResponse, sendFailureResponse} from './route_utils';
+import {sendSuccessResponse, sendFailureResponse, makeErr} from './route_utils';
 import User from '../models/user';
 import Promise from 'bluebird';
 
@@ -34,7 +34,7 @@ router.put('/me',
       // Find the user.
       User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
         if (!user) {
-          return Promise.reject(new Error('Could not find user'));
+          return Promise.reject(makeErr(HttpStatus.NOT_FOUND, 'Could not find user'));
         }
         // Set the phone number and name and save the user.
         if (req.body.phone !== undefined) {
@@ -48,8 +48,7 @@ router.put('/me',
       }).then(function onSave(users) {
         // If there's no error saving, return the user.
         if (users.length !== 2 || users[1] !== 1) {
-          const err = new Error('Could not save user, check your request');
-          return Promise.reject(err);
+          return Promise.reject(makeErr(HttpStatus.INTERNAL_SERVER_ERROR, 'Could not save user'));
         }
         sendSuccessResponse(res, 'Updated user', {
           'name': users[0].name,
@@ -71,7 +70,7 @@ router.get('/me',
       // Find the user.
       User.findOneAsync({'_id': req.user._id}).then(function onFound(user) {
         if (!user) {
-          return Promise.reject(new Error('Could not find user'));
+          return Promise.reject(makeErr(HttpStatus.NOT_FOUND, 'Could not find user'));
         }
         sendSuccessResponse(res, 'User Info', {
           'name': user.name,

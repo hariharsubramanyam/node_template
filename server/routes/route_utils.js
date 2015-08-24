@@ -3,6 +3,12 @@
 import 'source-map-support/register';
 import HttpStatus from 'http-status-codes';
 
+export function makeErr(statusCode, message) {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  return err;
+}
+
 function checkHelper(key, names, req, res, callback) {
   const params = new Map();
   let missingArg = null;
@@ -15,9 +21,7 @@ function checkHelper(key, names, req, res, callback) {
     }
   }
   if (missingArg !== null) {
-    const err = new Error('You are missing the ' + missingArg + ' param');
-    err.statusCode = HttpStatus.BAD_REQUEST;
-    callback(err);
+    callback(makeErr(HttpStatus.BAD_REQUEST, 'You are missing the ' + missingArg + ' param'));
   } else {
     callback(null, params);
   }
